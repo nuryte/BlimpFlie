@@ -1,26 +1,22 @@
-/*
- * @Author       : Hanqing Qi
- * @Date         : 2023-08-01 15:54:19
- * @LastEditors  : Hanqing Qi
- * @LastEditTime : 2023-08-01 17:35:04
- * @FilePath     : /undefined/Users/hanqingqi/Desktop/sensfusion_10DOF/ESPNOW.cpp
- * @Description  : This is the file for the ESPNOW class
- */
 
 #include <ESPNOW.h>
 
+// Receiver side data structures
+const int NUM_CONTROL_PARAMS = 13; // Number of parameters used for control
+volatile int CHANNEL = 1;
 volatile bool esp_ready;
 volatile unsigned long esp_time_now;
-Control_Input ESPNOW_Input;
 
-typedef struct ControlInput
+typedef struct ControlInput_t
 {
   float params[NUM_CONTROL_PARAMS];
   int channel; // The channel to broadcast on
 } ControlInput;
 
+ControlInput ESPNOW_Input;
+
 // Callback when data is received
-void ESPNOW::OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len)
+void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len)
 {
   char macStr[18];
   snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
@@ -69,6 +65,18 @@ void ESPNOW::OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_l
   {
     Serial.println("Data received on an unexpected channel. Ignoring.");
   }
+}
+
+ESPNOW::ESPNOW(){
+    for (int x = 0; x < 13; x++) {
+        ESPNOW_Input.params[x] = 0;
+    }
+    esp_ready = false;
+}
+
+void ESPNOW::setChannel(int set_channel)
+{
+    CHANNEL = set_channel;
 }
 
 void ESPNOW::init()

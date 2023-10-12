@@ -10,26 +10,19 @@
 #include "WiFi.h"
 #include <esp_now.h> // This is the arduino library for ESP-NOW
 #include <data_types.h>
-void ESPNOW_DataRecv(const uint8_t *mac, const uint8_t *incomingData, int len);
+void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len);
 
-// Receiver side data structures
-const int NUM_CONTROL_PARAMS = 13; // Number of parameters used for control
 
-typedef struct ControlInput
-{
-  float params[NUM_CONTROL_PARAMS];
-  int channel; // The channel to broadcast on
-} ControlInput;
 
 class ESPNOW
 {
 private:
   int delayMS = 1000;
-  int CHANNEL = 1;
 
 public:
   ESPNOW();
   void init();
+  void setChannel(int set_channel);
   void getControllerInputs(controller_t *controls);
   void getControllerRaws(raw_t *raws);
 };
