@@ -7,9 +7,7 @@ ModBlimp blimp;
 BNO55 bno;
 baro390 baro;
 
-
 IBusBM IBus; 
-
 
 /*
 flags to be used in the init 
@@ -202,7 +200,7 @@ void loop() {
     return; //changes outputs using the old format
   } else if ((int)(flag/10) == 1){ //flag == 10, 11, 12
     //set FLAGS for other stuff
-    setPDflags(PDterms,&weights, &raws);
+    setPDflags(&init_flags, PDterms,&weights, &raws);
     outputs.m1 = 0;
     outputs.m2 = 0;
     outputs.s1 = 0;
@@ -248,6 +246,15 @@ void loop() {
       controls.ty = (float)IBus.readChannel(4)/1000.0f;
       controls.tz = (float)IBus.readChannel(5)/1000.0f;
       controls.absz = (float)IBus.readChannel(6)/1000.0f;
+    } else if (flag == 98){
+      baro.init();
+      getLatestSensorData(&sensors);
+      sensors.groundZ = baro.getEstimatedZ();
+    }
+    else if (flag == 97){
+      bno.init();
+      delay(30);
+      getLatestSensorData(&sensors);
     }
     
     addFeedback(&controls, &sensors); //this function is implemented here for you to customize
@@ -262,7 +269,7 @@ void loop() {
 
 }
 
-void setPDflags(feedback_t *PDterms, sensor_weights_t *weights, raw_t *raws){
+void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *weights, raw_t *raws){
   Serial.print("Set flags: ");
   Serial.println(raws->flag);
   if (raws->flag == 10){// enables or disables feedback in these terms
@@ -321,6 +328,21 @@ void setPDflags(feedback_t *PDterms, sensor_weights_t *weights, raw_t *raws){
     
   }
 
+  else if (raws->flag == 16){
+  init_flags->verbose = raws->data[0] == 1.0f,
+  init_flags->sensors = raws->data[1] == 1.0f,
+  init_flags->escarm = raws->data[2] == 1.0f,
+  init_flags->UDP = raws->data[3] == 1.0f,
+  init_flags->Ibus = raws->data[4] == 1.0f,
+  init_flags->ESPNOW = raws->data[5] == 1.0f,
+  init_flags->PORT = raws->data[6],
+  init_flags->motor_type = raws->data[7],
+  init_flags->mode = raws->data[8],
+  init_flags->control = raws->data[9],
+  Serial.println("REINIT!");
+  blimp.init(init_flags, &init_sensors, PDterms);
+    
+  }
 
 }
 
