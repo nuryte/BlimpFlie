@@ -1,10 +1,10 @@
 #include "modBlimp.h"
-#include "BNO55.h"
+#include "BNO85.h"
 #include "baro390.h"
 
 
 ModBlimp blimp;
-BNO55 bno;
+BNO85 bno;
 baro390 baro;
 
 IBusBM IBus; 
@@ -21,7 +21,7 @@ flags to be used in the init
 init_flags_t init_flags = {
   .verbose = false,
   .sensors = false,
-  .escarm = true,
+  .escarm = false,
   .UDP = false,
   .Ibus = false,
   .ESPNOW = true,
@@ -150,7 +150,7 @@ void setup() {
     
   delay(100);
   // baro.init();
-  // bno.init();
+  //bno.init();
 
   getLatestSensorData(&sensors);
   sensors.groundZ = baro.getEstimatedZ();
@@ -162,7 +162,9 @@ bool snapon = 0;
 // float resyncPitch = 0.09;
 // float resyncPitchTemp = 0;
 // float resyncTimer = 0;
-unsigned long timed = millis();
+unsigned long timed = micros();
+
+int counter2 = 0;
 void loop() {
 
   
@@ -186,8 +188,8 @@ void loop() {
   if flag = 23: do nicla high level control
   */
   int flag = raws.flag;
-  
   getLatestSensorData(&sensors);
+  // }
   // sensors.pitch =  sensors.pitch -3.1416 - 0.14;//hack to invert pitch due to orientation of the sensor
   // while (sensors.pitch > 3.1416) {
   //   sensors.pitch -= 3.1416*2;
@@ -246,24 +248,53 @@ void loop() {
       controls.ty = (float)IBus.readChannel(4)/1000.0f;
       controls.tz = (float)IBus.readChannel(5)/1000.0f;
       controls.absz = (float)IBus.readChannel(6)/1000.0f;
-    } else if (flag == 98){
-      baro.init();
-      getLatestSensorData(&sensors);
-      sensors.groundZ = baro.getEstimatedZ();
-    }
-    else if (flag == 97){
-      bno.init();
-      delay(30);
-      getLatestSensorData(&sensors);
-    }
+    } 
     
     addFeedback(&controls, &sensors); //this function is implemented here for you to customize
     getOutputs(&controls, &sensors, &outputs);
 
   }
-
+  else if (flag == 98){
+    baro.init();
+    getLatestSensorData(&sensors);
+    delay(200);
+    sensors.groundZ = baro.getEstimatedZ();
+  }
+  else if (flag == 97){
+    bno.init();
+    
+    //getLatestSensorData(&sensors);
+  } 
   blimp.executeOutputs(&outputs);
-  delay(4);
+  int dt = (int)(micros()-timed);
+  while (4000 - dt > 0){
+    dt = (int)(micros()-timed);
+  }
+  timed = micros();
+  counter2 += 1;
+  
+  if (counter2 >= 50){
+    Serial.print(dt);
+    Serial.print(',');
+    Serial.print((bool)controls.ready);
+    Serial.print(',');
+    Serial.print(controls.absz);
+    Serial.print(',');
+    Serial.print(controls.fz);
+    Serial.print(',');
+    Serial.print(raws.data[0]);
+    Serial.print(',');
+    Serial.print(controls.tz);
+    Serial.print(',');
+    Serial.print(sensors.estimatedZ - sensors.groundZ);
+    Serial.print(',');
+    Serial.print(sensors.pitch);
+    Serial.print(',');
+    Serial.print(sensors.roll);
+    Serial.print(',');
+    Serial.println(sensors.yaw);
+    counter2 = 0;
+  }
   
 
 
@@ -329,18 +360,18 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
   }
 
   else if (raws->flag == 16){
-  init_flags->verbose = raws->data[0] == 1.0f,
-  init_flags->sensors = raws->data[1] == 1.0f,
-  init_flags->escarm = raws->data[2] == 1.0f,
-  init_flags->UDP = raws->data[3] == 1.0f,
-  init_flags->Ibus = raws->data[4] == 1.0f,
-  init_flags->ESPNOW = raws->data[5] == 1.0f,
-  init_flags->PORT = raws->data[6],
-  init_flags->motor_type = raws->data[7],
-  init_flags->mode = raws->data[8],
-  init_flags->control = raws->data[9],
-  Serial.println("REINIT!");
-  blimp.init(init_flags, &init_sensors, PDterms);
+    init_flags->verbose = raws->data[0] == 1.0f,
+    init_flags->sensors = raws->data[1] == 1.0f,
+    init_flags->escarm = raws->data[2] == 1.0f,
+    init_flags->UDP = raws->data[3] == 1.0f,
+    init_flags->Ibus = raws->data[4] == 1.0f,
+    init_flags->ESPNOW = raws->data[5] == 1.0f,
+    init_flags->PORT = raws->data[6],
+    init_flags->motor_type = raws->data[7],
+    init_flags->mode = raws->data[8],
+    init_flags->control = raws->data[9],
+    Serial.println("REINIT!");
+    blimp.init(init_flags, &init_sensors, PDterms);
     
   }
 

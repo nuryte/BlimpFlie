@@ -5,6 +5,7 @@
 const int NUM_CONTROL_PARAMS = 13; // Number of parameters used for control
 volatile int CHANNEL = 1;
 volatile bool esp_ready;
+volatile bool verbose = false;
 volatile unsigned long esp_time_now;
 
 typedef struct ControlInput_t
@@ -19,47 +20,52 @@ ControlInput ESPNOW_Input;
 void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len)
 {
   char macStr[18];
-  snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
+  if (verbose) {
+    snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
            mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-  
+  }
   ControlInput *incomingData = (ControlInput *)data; // Cast data to our structure type
   
   if (incomingData->channel == -1) // Check if the data is P2P
   {
-    Serial.print("Packet from: ");
-    Serial.println(macStr);
-    Serial.print("Control params: ");
-    for (int i = 0; i < NUM_CONTROL_PARAMS; i++)
-    {
-      Serial.print(incomingData->params[i]);
-      if (i < NUM_CONTROL_PARAMS - 1)
+    if (verbose) {
+      Serial.print("Packet from: ");
+      Serial.println(macStr);
+      Serial.print("Control params: ");
+      for (int i = 0; i < NUM_CONTROL_PARAMS; i++)
       {
-        Serial.print(", ");
+        Serial.print(incomingData->params[i]);
+        if (i < NUM_CONTROL_PARAMS - 1)
+        {
+          Serial.print(", ");
+        }
       }
+      Serial.println("\tListening from P2P");
     }
     esp_time_now = millis();
     esp_ready = false;
     memcpy(&ESPNOW_Input, incomingData, sizeof(ESPNOW_Input));
     esp_ready = true;
-    Serial.println("\tListening from P2P");
   }else if (incomingData->channel == CHANNEL){ // Check if the data is broadcast
-    Serial.print("Packet from: ");
-    Serial.println(macStr);
-    Serial.print("Control params: ");
-    for (int i = 0; i < NUM_CONTROL_PARAMS; i++)
-    {
-      Serial.print(incomingData->params[i]);
-      if (i < NUM_CONTROL_PARAMS - 1)
+    if (verbose) {
+      Serial.print("Packet from: ");
+      Serial.println(macStr);
+      Serial.print("Control params: ");
+      for (int i = 0; i < NUM_CONTROL_PARAMS; i++)
       {
-        Serial.print(", ");
+        Serial.print(incomingData->params[i]);
+        if (i < NUM_CONTROL_PARAMS - 1)
+        {
+          Serial.print(", ");
+        }
       }
+      Serial.print("\tListening on channel: ");
+      Serial.println(incomingData->channel);
     }
     esp_time_now = millis();
     esp_ready = false;
     memcpy(&ESPNOW_Input, incomingData, sizeof(ESPNOW_Input));
     esp_ready = true;
-    Serial.print("\tListening on channel: ");
-    Serial.println(incomingData->channel);
   }
   else
   {
@@ -146,7 +152,7 @@ void ESPNOW::getControllerRaws(raw_t *raws)
         raws->flag = (int)ESPNOW_Input.params[0];
         raws->ready = (bool)((int)ESPNOW_Input.params[1] == 1);
         for (int x = 0; x < 11; x++) {
-            raws->data[0] = ESPNOW_Input.params[x+2];
+            raws->data[x] = ESPNOW_Input.params[x+2];
         }
         
     }

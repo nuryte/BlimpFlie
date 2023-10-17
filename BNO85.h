@@ -7,6 +7,7 @@ class BNO85
 private:
     bool bnoOn = false;
     BNO08x myIMU;
+    void setReports(void);
     
 public:
     BNO85();

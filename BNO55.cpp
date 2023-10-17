@@ -8,6 +8,9 @@ BNO55::BNO55(){
 }
 
 void BNO55::init(){
+  if (bnoOn){
+    return;
+  }
     
   /* Initialise the sensor */
   if (!bno.begin())

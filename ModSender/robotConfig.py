@@ -124,13 +124,17 @@ class RobotConfig:
         return True
     
     def startBNO(self, BRODCAST_CHANNEL, SLAVE_INDEX):
-
+        time.sleep(0.1)
         if not self._send_data([97], BRODCAST_CHANNEL, SLAVE_INDEX):
+            time.sleep(1)
             return False
+        time.sleep(1)
     
 
     def startBaro(self, BRODCAST_CHANNEL, SLAVE_INDEX):
-
+        time.sleep(0.1)
         if not self._send_data([98], BRODCAST_CHANNEL, SLAVE_INDEX):
+            time.sleep(1)
             return False
+        time.sleep(1)
     
