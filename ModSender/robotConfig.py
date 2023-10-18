@@ -147,7 +147,7 @@ class RobotConfig:
         # Convert bytes to floats and print
         mac_floats = [float(byte) for byte in mac_bytes]
         print(mac_floats)
-        if not self._send_data([17] + mac_floats, BRODCAST_CHANNEL, SLAVE_INDEX):
+        if not self._send_data([17,0] + mac_floats, BRODCAST_CHANNEL, SLAVE_INDEX):
             time.sleep(1)
             return False
         time.sleep(1)

@@ -18,7 +18,7 @@ LIST_OF_MAC_ADDRESS = [
 
 MASTER_MAC = "34:85:18:91:C7:80" #address of the transiever
 
-SLAVE_INDEX = 5 #-1 means broadcast
+SLAVE_INDEX = 2 #-1 means broadcast
 
 
 BRODCAST_CHANNEL = 1 # SLAVE_INDEX will override this value if SLAVE_INDEX is not -1
@@ -33,9 +33,9 @@ robConfig = RobotConfig(esp_now, "ModSender\\robot_configs.json")
 robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 #robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 
-#robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)
-# robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
-# robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
+robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)
+robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
+robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
 
 y = False
 try:

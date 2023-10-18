@@ -280,28 +280,36 @@ void parseAndStoreMac(int index, String &mac)
     prevPos = pos + 1;
   }
 }
-
+unsigned long lastReceivedTimestamp = 0; // Holds the timestamp of the last received data
+bool sending = true;
 // 3. Modify the onDataReceive function
 void onDataReceive(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
     if (data_len == sizeof(ReceivedData)) {
+      if (sending == false){
         memcpy(&latestReceivedData, data, data_len);
+        lastReceivedTimestamp = millis();
+      }
     }
 }
 
 // 4. Modify the OnDataSent function
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-    char macStr[18];
-    snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
-             mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-    Serial.print("Packet to: ");
-    Serial.print(macStr);
-    Serial.print(", Last received data: Flag=");
+    // char macStr[18];
+    // snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
+    //          mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+    // Serial.print("Packet to: ");
+    // Serial.print(macStr);
+    sending = true;
+    Serial.print("Last received data timestamp: ");
+    Serial.print(lastReceivedTimestamp);
+    Serial.print("ms, Flag=");
     Serial.print(latestReceivedData.flag);
     Serial.print(", Values=");
     for (int i = 0; i < 6; i++) {
-        Serial.print(latestReceivedData.values[i], 4);  // 4 is the number of decimal places
+        Serial.print(latestReceivedData.values[i], 1);  // 4 is the number of decimal places
         if (i < 5) Serial.print(", ");
     }
+    sending = false;
     Serial.print(" Status: ");
     Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }

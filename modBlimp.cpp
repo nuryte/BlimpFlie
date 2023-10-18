@@ -643,6 +643,19 @@ void ModBlimp::send_udp_feedback(String dat1, String dat2, String dat3, String d
 {
   udpSuite.send_udp_feedback(dat1, dat2, dat3, dat4);
 }
+
+void ModBlimp::send_esp_feedback(uint8_t mac_addr[6], ReceivedData* data)
+{
+  espNow.sendResponse(mac_addr, data);
+}
+
+esp_err_t ModBlimp::attemptToAddPeer(uint8_t mac_addr[6])
+{
+  return espNow.attemptToAddPeer(mac_addr);
+}
+
+
+
 float ModBlimp::clamp(float in, float min, float max)
 {
   if (in < min)
