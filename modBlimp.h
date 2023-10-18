@@ -76,6 +76,8 @@ class ModBlimp {
         float clamp(float in, float min, float max);
         void send_udp_feedback(String dat1, String dat2, String dat3, String dat4);
         void calibrationMode(int flag);
+
+        void send_esp_feedback(ReceivedData* data);
 };
 
 #endif

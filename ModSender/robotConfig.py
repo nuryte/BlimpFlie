@@ -138,3 +138,16 @@ class RobotConfig:
             return False
         time.sleep(1)
     
+
+    def startTranseiver(self, BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC):
+        time.sleep(0.1)
+        # Split the MAC address into its bytes and convert to integers
+        mac_bytes = [int(byte, 16) for byte in MASTER_MAC.split(':')]
+
+        # Convert bytes to floats and print
+        mac_floats = [float(byte) for byte in mac_bytes]
+        print(mac_floats)
+        if not self._send_data([17] + mac_floats, BRODCAST_CHANNEL, SLAVE_INDEX):
+            time.sleep(1)
+            return False
+        time.sleep(1)

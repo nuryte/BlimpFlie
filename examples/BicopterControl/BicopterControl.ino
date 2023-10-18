@@ -21,7 +21,7 @@ flags to be used in the init
 init_flags_t init_flags = {
   .verbose = false,
   .sensors = false,
-  .escarm = false,
+  .escarm = true,
   .UDP = false,
   .Ibus = false,
   .ESPNOW = true,
@@ -132,6 +132,10 @@ float z_integral = 0;
 //passive term
 float servo1offset = 0;
 float servo2offset = 0;
+
+//sender feedback 
+bool transceiverEnabled = false;
+uint8_t transceiverAddress[6];
 
 
 feedback_t * PDterms = &feedbackPD;
@@ -373,6 +377,12 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
     Serial.println("REINIT!");
     blimp.init(init_flags, &init_sensors, PDterms);
     
+  } else if (raws->flag == 17){
+    //uint8_t transceiverAddress[6];
+    transceiverEnabled = true;
+    for (int i = 0; i < 6; i++) {
+      transceiverAddress[i] = (uint8_t)raws->data[i];
+    }
   }
 
 }
@@ -501,6 +511,81 @@ void addFeedback(controller_t *controls, sensors_t *sensors) {
       controls->fx = ifx*cosp + controls->fz*sinp;
       controls->fz = (-1*ifx*sinp + controls->fz* cosp)/cosr;
     }
+}
+
+//creates the output values used for actuation from the control values
+void getOutputs270(controller_t *controls, sensors_t *sensors, actuation_t *out)
+{
+
+  // set up output
+
+  // set output to default if controls not ready
+  if (controls->ready == false)
+  {
+    out->s1 = clamp(PI/2 + servo1offset, 0, 3*PI/2) / (3*PI/2); // cant handle values between PI and 2PI
+    out->s2 = clamp(PI/2 + servo2offset, 0, 3*PI/2) / (3*PI/2);
+
+    out->m1 = 0;
+    out->m2 = 0;
+    out->ready = false;
+    return;
+  }
+
+  out->ready = true;
+  // inputs to the A-Matrix
+  float l = PDterms->lx; //.3
+
+  float fx = clamp(controls->fx, -1, 1);                  // setpoint->bicopter.fx;
+  float fz = clamp(controls->fz, -2, 2);                 // setpoint->bicopter.fz;
+  //float maxRadsYaw = .07; //.1f                                 //.175;
+  //float magxz = max(fz * tan(maxRadsYaw), fx * l * 0.17f); // limits the yaw based on the magnitude of the force
+  float taux = clamp(controls->tx, -l + (float)0.01, l - (float)0.01);
+  float tauz = clamp(controls->tz, -1, 1) ;//* magxz; // limit should be .25 setpoint->bicopter.tauz; //- stateAttitudeRateYaw
+
+  // inverse A-Matrix calculations
+  float term1 = l * l * fx * fx + l * l * fz * fz + taux * taux + tauz * tauz;
+  float term2 = 2 * fz * l * taux - 2 * fx * l * tauz;
+  float term3 = sqrt(term1 + term2);
+  float term4 = sqrt(term1 - term2);
+  float f1 = term3 / (2 * l); // in unknown units
+  float f2 = term4 / (2 * l);
+  float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3) - sensors->pitch; // in radians
+  float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4) - sensors->pitch;
+
+  // checking for full rotations
+  while (t1 < -PI / 4)
+  {
+    t1 = t1 + 2 * PI;
+  }
+  while (t1 > 7 * PI / 4)
+  {
+    t1 = t1 - 2 * PI;
+  }
+  while (t2 < -PI / 4)
+  {
+    t2 = t2 + 2 * PI;
+  }
+  while (t2 > 7 * PI / 4)
+  {
+    t2 = t2 - 2 * PI;
+  }
+
+  // converting values to a more stable form
+  
+  out->m1 = clamp(f1, 0, 1);
+  out->m2 = clamp(f2, 0, 1);
+  if (out->m1 < 0.02f)
+  {
+    t1 = PI/2;
+  }
+  if (out->m2 < 0.02f)
+  {
+    t2 = PI/2;
+  }
+  
+  out->s1 = clamp(t1 + servo1offset, 0, 3*PI/2) / (3*PI/2); // cant handle values between PI and 2PI
+  out->s2 = clamp(t2 + servo2offset, 0, 3*PI/2) / (3*PI/2);
+  return;
 }
 
 

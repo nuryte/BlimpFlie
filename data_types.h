@@ -65,5 +65,15 @@ typedef struct feedback_s {
 } feedback_t;
 
 
+typedef struct ControlInput {
+    float params[13];
+    int channel;
+} ControlInput;
+
+typedef struct ReceivedData {
+    int flag;
+    float values[6];
+} ReceivedData;
+
 
 #endif
