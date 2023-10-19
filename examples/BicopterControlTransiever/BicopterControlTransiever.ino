@@ -136,7 +136,7 @@ float servo2offset = 0;
 //sender feedback 
 bool transceiverEnabled = false;
 uint8_t transceiverAddress[6];
-
+ReceivedData espSendData;
 
 feedback_t * PDterms = &feedbackPD;
 //storage variables
@@ -279,7 +279,11 @@ void loop() {
   
   if (counter2 >= 50){
     if (transceiverEnabled){
+      espSendData.flag = 1;
+      espSendData.values[0] = sensors.yaw;
+      espSendData.values[1] = sensors.estimatedZ - sensors.groundZ;
 
+      blimp.send_esp_feedback(transceiverAddress, &espSendData);
     }
     Serial.print(dt);
     Serial.print(',');
@@ -385,9 +389,15 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
       //uint8_t transceiverAddress[6];
       transceiverEnabled = true;
       for (int i = 0; i < 6; i++) {
+        // print((uint8_t)raws->data[i]);
+        // print(":");
         transceiverAddress[i] = (uint8_t)raws->data[i];
       }
-      
+      if (blimp.attemptToAddPeer(transceiverAddress) != ESP_OK) {
+        Serial.println(" Failed to add peer or peer already exists!");
+    } else {
+        Serial.println(" Peer added successfully!");
+    }
     }
   }
 

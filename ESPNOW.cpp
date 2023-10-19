@@ -8,11 +8,6 @@ volatile bool esp_ready;
 volatile bool verbose = false;
 volatile unsigned long esp_time_now;
 
-typedef struct ControlInput_t
-{
-  float params[NUM_CONTROL_PARAMS];
-  int channel; // The channel to broadcast on
-} ControlInput;
 
 ControlInput ESPNOW_Input;
 
@@ -161,4 +156,77 @@ void ESPNOW::getControllerRaws(raw_t *raws)
         raws->ready = false;
     }
     return;
+}
+
+
+void ESPNOW::sendResponse(uint8_t mac_addr[6], ReceivedData *responseData) {
+    Serial.print(mac_addr[0]);
+    Serial.print(":");
+    Serial.print(mac_addr[1]);
+    Serial.print(":");
+    Serial.print(mac_addr[2]);
+    Serial.print(":");
+    Serial.print(mac_addr[3]);
+    Serial.print(":");
+    Serial.print(mac_addr[4]);
+    Serial.print(":");
+    Serial.print(mac_addr[5]);
+    
+
+    esp_err_t result = esp_now_send(mac_addr, (uint8_t *)&responseData, sizeof(ReceivedData));
+    if (result == ESP_OK) {
+        Serial.println(" Sent response successfully");
+    } else {
+        Serial.println(" Error sending response");
+    }
+}
+
+bool ESPNOW::isPeerAlreadyAdded(const uint8_t *mac_addr) {
+    // esp_now_peer_info_t *peer_list = NULL;
+    // uint8_t peer_count = 0;
+
+    // if (esp_now_get_peer_num(&peer_count) != ESP_OK) {
+    //     return false; // Error getting peer count
+    // }
+
+    // if (peer_count == 0) {
+    //     return false; // No peers exist
+    // }
+
+    // peer_list = (esp_now_peer_info_t *)malloc(sizeof(esp_now_peer_info_t) * peer_count);
+    // if (peer_list == NULL) {
+    //     return false; // Memory allocation failed
+    // }
+
+    // if (esp_now_get_peer_list(peer_list, &peer_count) != ESP_OK) {
+    //     free(peer_list);
+    //     return false; // Error getting peer list
+    // }
+
+    // for (int i = 0; i < peer_count; i++) {
+    //     if (memcmp(peer_list[i].peer_addr, mac_addr, 6) == 0) {
+    //         free(peer_list);
+    //         return true; // Found a matching MAC address
+    //     }
+    // }
+
+    // free(peer_list);
+    // return false; // No matching MAC address found
+    return false;
+}
+
+esp_err_t ESPNOW::attemptToAddPeer(uint8_t mac_addr[6]) {
+    esp_now_peer_info_t peerInfo;
+    memset(&peerInfo, 0, sizeof(peerInfo)); // Initialize peerInfo structure to zero
+    
+    // Set default properties for peerInfo here. For example:
+    peerInfo.channel = 0;  // Default to Wi-Fi channel 0
+    peerInfo.encrypt = false; // No encryption by default
+
+    if (!isPeerAlreadyAdded(mac_addr)) {
+        memcpy(peerInfo.peer_addr, mac_addr, 6); 
+        return esp_now_add_peer(&peerInfo);
+    } else {
+        return ESP_FAIL; // Indicate that the peer already exists
+    }
 }

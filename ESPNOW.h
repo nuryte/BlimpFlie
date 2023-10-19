@@ -18,6 +18,7 @@ class ESPNOW
 {
 private:
   int delayMS = 1000;
+  bool isPeerAlreadyAdded(const uint8_t *mac_addr);
 
 public:
   ESPNOW();
@@ -25,4 +26,6 @@ public:
   void setChannel(int set_channel);
   void getControllerInputs(controller_t *controls);
   void getControllerRaws(raw_t *raws);
+  esp_err_t attemptToAddPeer(uint8_t mac_addr[6]);
+  void sendResponse(uint8_t mac_addr[6], ReceivedData *responseData);
 };

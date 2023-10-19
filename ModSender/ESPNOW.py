@@ -96,7 +96,9 @@ class ESPNOWControl:
         message = str("<" + DELIMITER.join(map(str, raw_massage)) + ">")
         self.serial.write(message.encode())
         try:
+
             incoming = self.serial.readline().decode(errors="ignore").strip()
+            
             print("Sending ", incoming)
             return incoming[-4:] == "cess"
         except UnicodeDecodeError:
