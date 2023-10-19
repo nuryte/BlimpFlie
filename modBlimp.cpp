@@ -20,6 +20,7 @@ void ModBlimp::initDefault()
       .verbose = false,
       .sensors = true,
       .escarm = true,
+      .calibrate_esc = false,
       .UDP = true,
       .Ibus = true,
       .motor_type = 0,
@@ -160,6 +161,12 @@ void ModBlimp::init(init_flags_t *init_flagsIn, init_sensors_t *init_sensorsIn, 
     thrust1.setPeriodHertz(55);
     thrust2.setPeriodHertz(55);
 
+    // Calibrate brushless motors befor arming them
+    if (init_flags->calibrate_esc)
+    {
+      calibrate_esc(thrust1, thrust2);
+    }
+    // Arm brushless motors
     if (init_flags->escarm)
     {
       escarm(thrust1, thrust2);
@@ -170,8 +177,8 @@ void ModBlimp::init(init_flags_t *init_flagsIn, init_sensors_t *init_sensorsIn, 
     servo2.attach(SERVO2, 1000, 2000);
     servo1.setPeriodHertz(50); // Standard 50hz servo
     servo2.setPeriodHertz(50); // Standard 50hz servo
-    thrust1.attach(THRUST1, 1000, 2000);
-    thrust2.attach(THRUST2, 1000, 2000);
+    thrust1.attach(THRUST1, 1000, 2300);
+    thrust2.attach(THRUST2, 1000, 2300);
     thrust1.setPeriodHertz(55);
     thrust2.setPeriodHertz(55);
 
@@ -689,4 +696,30 @@ void ModBlimp::escarm(Servo &thrust1, Servo &thrust2)
   delay(10);
   thrust2.writeMicroseconds(1000);
   delay(10);
+}
+
+
+
+
+// Enter arming sequence for ESC
+void ModBlimp::calibrate_esc(Servo &thrust1, Servo &thrust2)
+{
+    delay(1000);
+  Serial.println("Calibrating ESCs....");
+  // ESC arming sequence for BLHeli S
+  thrust1.writeMicroseconds(2000);
+  delay(10);
+  thrust2.writeMicroseconds(23000);
+  delay(15000);
+
+
+  // Back to minimum value
+  thrust1.writeMicroseconds(1000);
+  delay(10);
+  thrust2.writeMicroseconds(1000);
+  delay(10);
+
+
+
+  Serial.println("Calibration completed1");
 }
