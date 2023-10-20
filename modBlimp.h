@@ -49,6 +49,7 @@ class ModBlimp {
 
         volatile unsigned long time_end;
         void escarm(Servo& thrust1, Servo& thrust2);
+        void calibrate_esc(Servo& thrust1, Servo& thrust2);
         void initMotors(); //runs the escarm and initializes motors and servos
         void initSensors(init_sensors_t  *sensors); //attempts to connect to the sensors using sensorswuite.
 
