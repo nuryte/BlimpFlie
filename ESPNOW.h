@@ -11,6 +11,7 @@
 #include <esp_now.h> // This is the arduino library for ESP-NOW
 #include <data_types.h>
 void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len);
+void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status);
 
 
 

@@ -70,7 +70,9 @@ class RobotConfig:
              feedbackPD["kdz"],
              feedbackPD["lx"], 
              feedbackPD["pitchSign"], 
-             feedbackPD["pitchOffset"]],
+             feedbackPD["pitchOffset"],
+             feedbackPD["rollSign"], 
+             feedbackPD["rollOffset"]],
             [14, 0, 
              weights["eulerGamma"], 
              weights["rollRateGamma"], 
@@ -84,7 +86,8 @@ class RobotConfig:
              feedbackPD["z_int_low"],
              feedbackPD["z_int_high"], 
              feedbackPD["servo1offset"], 
-             feedbackPD["servo2offset"]]
+             feedbackPD["servo2offset"],
+             feedbackPD["rollPitchSwitch"]]
         ]
 
         for data in data_sets:

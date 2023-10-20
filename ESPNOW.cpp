@@ -68,6 +68,12 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len)
   }
 }
 
+void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+    // Serial.print(" Status: ");
+    // Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+
+}
+
 ESPNOW::ESPNOW(){
     for (int x = 0; x < 13; x++) {
         ESPNOW_Input.params[x] = 0;
@@ -82,22 +88,25 @@ void ESPNOW::setChannel(int set_channel)
 
 void ESPNOW::init()
 {
-    // Set device as a Wi-Fi Station
-    WiFi.mode(WIFI_STA);
-    Serial.print("ESP Board MAC Address:  ");
-    Serial.println(WiFi.macAddress());
+  // Set device as a Wi-Fi Station
+  WiFi.mode(WIFI_STA);
+  Serial.print("ESP Board MAC Address:  ");
+  Serial.println(WiFi.macAddress());
 
-    if (esp_now_init() != ESP_OK)
-    {
-        Serial.println("Error initializing ESP-NOW");
-        return;
-    }else{
-        Serial.println("ESP-NOW initialized");
-    }
+  if (esp_now_init() != ESP_OK)
+  {
+      Serial.println("Error initializing ESP-NOW");
+      return;
+  }else{
+      Serial.println("ESP-NOW initialized");
+  }
+  //esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
 
-    // Register for a callback function that will be called when data is received
-    esp_now_register_recv_cb(OnDataRecv);
-    esp_time_now = millis();
+  // Register for a callback function that will be called when data is received
+  esp_now_register_recv_cb(OnDataRecv);
+  esp_now_register_send_cb(OnDataSent);
+  
+  esp_time_now = millis();
 }
 
 /**
@@ -160,25 +169,25 @@ void ESPNOW::getControllerRaws(raw_t *raws)
 
 
 void ESPNOW::sendResponse(uint8_t mac_addr[6], ReceivedData *responseData) {
-    Serial.print(mac_addr[0]);
-    Serial.print(":");
-    Serial.print(mac_addr[1]);
-    Serial.print(":");
-    Serial.print(mac_addr[2]);
-    Serial.print(":");
-    Serial.print(mac_addr[3]);
-    Serial.print(":");
-    Serial.print(mac_addr[4]);
-    Serial.print(":");
-    Serial.print(mac_addr[5]);
+    // Serial.print(mac_addr[0]);
+    // Serial.print(":");
+    // Serial.print(mac_addr[1]);
+    // Serial.print(":");
+    // Serial.print(mac_addr[2]);
+    // Serial.print(":");
+    // Serial.print(mac_addr[3]);
+    // Serial.print(":");
+    // Serial.print(mac_addr[4]);
+    // Serial.print(":");
+    // Serial.print(mac_addr[5]);
     
 
-    esp_err_t result = esp_now_send(mac_addr, (uint8_t *)&responseData, sizeof(ReceivedData));
-    if (result == ESP_OK) {
-        Serial.println(" Sent response successfully");
-    } else {
-        Serial.println(" Error sending response");
-    }
+    esp_err_t result = esp_now_send(mac_addr, (uint8_t *)responseData, sizeof(ReceivedData));
+    // if (result == ESP_OK) {
+    //     Serial.println(" Sent response successfully");
+    // } else {
+    //     Serial.println(" Error sending response");
+    // }
 }
 
 bool ESPNOW::isPeerAlreadyAdded(const uint8_t *mac_addr) {

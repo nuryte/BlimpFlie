@@ -3,7 +3,7 @@
 
 const int NUM_PARAMS = 15;         
 const int NUM_CONTROL_PARAMS = 13; 
-const int MAX_RECEIVERS = 10;      
+const int MAX_RECEIVERS = 15;      
 const int MAC_LENGTH = 6;          
 
 uint8_t slaveAddresses[MAX_RECEIVERS][MAC_LENGTH] = {};
@@ -47,20 +47,24 @@ void print_params();
 void setup() {
     Serial.begin(115200);
     WiFi.mode(WIFI_STA);
+    delay(200);
     Serial.print("ESP Board MAC Address:  ");
-    Serial.println(WiFi.macAddress());
-    delay(2000);
+    Serial.print(WiFi.macAddress());
+    
+    //esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
 
     // 5. Register the onDataReceive function
     esp_now_register_recv_cb(onDataReceive);
 }
 
+unsigned long timed = micros();
 
 void loop()
 {
   // Check if there is any data to be received
   while (Serial.available())
   {
+    timed = micros();
     char c = Serial.read();
     if (c == '$') // The package contains the addresses of the receivers
     {
@@ -108,7 +112,7 @@ void loop()
   {
     completePackage = false;
     esp_err_t result;
-
+    timed = micros();
     if (slaveIndex >= 0 && slaveIndex < numOfAddresses)
     {
       result = esp_now_send(slaveAddresses[slaveIndex], (uint8_t *)&controlParams, sizeof(ControlInput));
@@ -121,8 +125,19 @@ void loop()
     {
       result = esp_now_send(nullAddress, (uint8_t *)&controlParams, sizeof(ControlInput)); // Default sending behavior
     }
-    // Consider handling the result here...
-  }
+    // Serial.print("result: ");
+    // Serial.print(result);
+    // Serial.print(" ");
+    // if (result != ESP_OK) {
+    //   Serial.println("Failed to send!");
+    // }
+  } 
+  // else {
+  //   if (micros() - timed > 3000000){
+  //     timed = micros();
+  //     Serial.println("Timed out!");
+  //   }
+  // }
 }
 
 
@@ -141,6 +156,7 @@ void initializeESPNowPeers()
   }
 
   esp_now_register_send_cb(OnDataSent);
+  esp_now_register_recv_cb(onDataReceive);
 
   for (int i = 0; i < numOfAddresses; i++) 
   {
@@ -281,14 +297,16 @@ void parseAndStoreMac(int index, String &mac)
   }
 }
 unsigned long lastReceivedTimestamp = 0; // Holds the timestamp of the last received data
-bool sending = true;
+
 // 3. Modify the onDataReceive function
 void onDataReceive(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
+  
+    lastReceivedTimestamp = millis();
     if (data_len == sizeof(ReceivedData)) {
-      if (sending == false){
-        memcpy(&latestReceivedData, data, data_len);
-        lastReceivedTimestamp = millis();
-      }
+      
+      memcpy(&latestReceivedData, data, data_len);
+        
+        
     }
 }
 
@@ -299,19 +317,17 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
     //          mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
     // Serial.print("Packet to: ");
     // Serial.print(macStr);
-    sending = true;
-    Serial.print("Last received data timestamp: ");
+    Serial.print("Time: ");
     Serial.print(lastReceivedTimestamp);
     Serial.print("ms, Flag=");
     Serial.print(latestReceivedData.flag);
-    Serial.print(", Values=");
+    Serial.print(", Values=|");
     for (int i = 0; i < 6; i++) {
         Serial.print(latestReceivedData.values[i], 1);  // 4 is the number of decimal places
-        if (i < 5) Serial.print(", ");
+        if (i < 5) Serial.print(",");
     }
-    sending = false;
-    Serial.print(" Status: ");
-    Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+    Serial.print("| Status: ");
+    Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
 }
 
 /**
@@ -320,10 +336,10 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
  */
 void print_params()
 {
-  Serial.print("Control params: ");
-  for (int i = 0; i < NUM_CONTROL_PARAMS; i++)
+  Serial.print("Controls: ");
+  for (int i = 0; i < NUM_CONTROL_PARAMS-5; i++)
   {
-    Serial.print(controlParams.params[i]);
+    Serial.print(controlParams.params[i],1);
     if (i < NUM_CONTROL_PARAMS - 1)
     {
       Serial.print(", ");
@@ -337,7 +353,7 @@ void print_params()
   }
   else
   {
-    Serial.print("to peer: ");
+    Serial.print("peer: ");
     Serial.print(slaveIndex);
   }
   Serial.print("\t");

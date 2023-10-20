@@ -1,7 +1,7 @@
 {
     "bicopterbasic": {
         "feedbackPD" : { "roll" : 0,
-                        "pitch" : 0,
+                        "pitch" : 1,
                         "yaw" : 0,
                         "x" : 0,
                         "y" : 0,
@@ -10,8 +10,8 @@
 
                         "Croll" : 1,
                         "Cpitch" : 0, 
-                        "Cyaw" : 1,
-                        "Cx" : 1,
+                        "Cyaw" : 0.1,
+                        "Cx" : 0.6,
                         "Cy" : 0,
                         "Cz" : 1,
                         "Cabsz" : 1,
@@ -37,9 +37,12 @@
 
                         "lx" : 0.15,
                         "pitchSign" : 1,
-                        "pitchOffset" : -3.2816,
+                        "pitchOffset" : 0,
+                        "rollSign" : 1,
+                        "rollOffset" : 0,
+                        "rollPitchSwitch" : 1,
 
-                        "servo1offset" : -0.1,
+                        "servo1offset" : 0,
                         "servo2offset" : 0.0
                         },
         "weights": { "eulerGamma" : 0,

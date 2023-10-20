@@ -70,10 +70,16 @@ typedef struct ControlInput {
     int channel;
 } ControlInput;
 
+
 typedef struct ReceivedData {
     int flag;
     float values[6];
 } ReceivedData;
+
+typedef struct RollPitchAdjustments {
+    bool rollPitchSwitch;
+    float pitchSign, pitchOffset, rollSign, rollOffset;
+} RollPitchAdjustments;
 
 
 #endif

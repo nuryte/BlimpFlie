@@ -1,20 +1,25 @@
 import serial
 import time
+import re
 
 NULL_ADDRESS = ["00:00:00:00:00:00"]  # Default value for broadcast mode
 DELIMITER = "|"  # Delimiter for the message
-
+pattern = r"Flag=(-?\d+), Values=\|([-?\d.,]+)\|"
 
 # ESP-NOW Control Class
 class ESPNOWControl:
-    def __init__(self, serial_port: str, mac_addresses: list = NULL_ADDRESS) -> None:
+    def __init__(self, serial_port: str, mac_addresses: list = NULL_ADDRESS, ESP_VERBOSE = True) -> None:
         """
         @description: Initialize the serial connection and send the MAC addresses
         @param       {*} self: -
         @param       {str} serial_port: The serial port to connect to
         @param       {list} mac_addresses: The list of MAC addresses to send
+        @param       ESP_VERBOSE: determines if the send command prints all the time
         @return      {*} None
         """
+        self.verbose = ESP_VERBOSE
+        self.feed_flag = 0
+        self.feedback = [0,0,0,0,0,0]
         if self._init_serial(serial_port):
             print("Serial connection established")
         else:
@@ -36,7 +41,7 @@ class ESPNOWControl:
         @return      {bool} True if the connection is successful, False otherwise
         """
         try:
-            self.serial = serial.Serial(serial_port, 115200)
+            self.serial = serial.Serial(serial_port, 115200, timeout=1)
             print(f"Connected to port {serial_port}")
             while self.serial.in_waiting:  # Clear the buffer
                 self.serial.readline().decode(errors="ignore").strip()
@@ -53,6 +58,7 @@ class ESPNOWControl:
         @param       {list} mac_addresses: List of MAC addresses to send
         @return      {*} None
         """
+        
         print("Sending MAC addresses...")
         while True:
             mac_data = "${}#{}$".format(len(mac_addresses), "#".join(mac_addresses))
@@ -98,13 +104,23 @@ class ESPNOWControl:
         try:
 
             incoming = self.serial.readline().decode(errors="ignore").strip()
-            
-            print("Sending ", incoming)
+            match = re.search(pattern, incoming)
+            if match:
+                self.feed_flag = int(match.group(1))  # Extract and convert the flag to an integer
+                values_str = match.group(2)  # Extract the values as a string
+
+                # Split the values string by commas to get a list of floats
+                self.feedback = [float(val) for val in values_str.split(',')]
+            if self.verbose:
+                print("Sending ", incoming)
             return incoming[-4:] == "cess"
         except UnicodeDecodeError:
             print("Received malformed data!")
             return False
         return False
+
+    def getFeedback(self):
+        return self.feed_flag, self.feedback
 
     def close(self) -> None:
         """

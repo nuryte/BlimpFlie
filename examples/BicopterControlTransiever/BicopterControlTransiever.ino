@@ -21,7 +21,7 @@ flags to be used in the init
 init_flags_t init_flags = {
   .verbose = false,
   .sensors = false,
-  .escarm = true,
+  .escarm = false,
   .UDP = false,
   .Ibus = false,
   .ESPNOW = true,
@@ -119,8 +119,15 @@ feedback_t feedbackPD = {
   .lx = .15,
 };
 // EXTRA TERMS
-float pitchSign = 1;
-float pitchOffset = 0;
+RollPitchAdjustments rollPitchAdjust = {
+  .rollPitchSwitch = false,
+  .pitchSign = 1,
+  .pitchOffset = 0,
+  .rollSign = 1,
+  .rollOffset = 0,
+};
+
+
 float kiz = 0;
 float integral_dt = .01;
 float z_int_low = 0;
@@ -168,6 +175,8 @@ bool snapon = 0;
 // float resyncTimer = 0;
 unsigned long timed = micros();
 
+int lastflag = 0;
+
 int counter2 = 0;
 void loop() {
 
@@ -191,22 +200,17 @@ void loop() {
   if flag = 22: do nicla low level control
   if flag = 23: do nicla high level control
   */
+  
   int flag = raws.flag;
   getLatestSensorData(&sensors);
-  // }
-  // sensors.pitch =  sensors.pitch -3.1416 - 0.14;//hack to invert pitch due to orientation of the sensor
-  // while (sensors.pitch > 3.1416) {
-  //   sensors.pitch -= 3.1416*2;
-  // }
-  // while (sensors.pitch < -3.1416) {
-  //   sensors.pitch += 3.1416*2;
-  // }
+  
+  
 
   if ((int)(flag/10) == 0){// flag == 0, 1, 2uses control of what used to be the correct way
     return; //changes outputs using the old format
   } else if ((int)(flag/10) == 1){ //flag == 10, 11, 12
     //set FLAGS for other stuff
-    setPDflags(&init_flags, PDterms,&weights, &raws);
+    setPDflags(&init_flags, PDterms,&weights, &raws, &rollPitchAdjust);
     outputs.m1 = 0;
     outputs.m2 = 0;
     outputs.s1 = 0;
@@ -258,13 +262,17 @@ void loop() {
     getOutputs(&controls, &sensors, &outputs);
 
   }
-  else if (flag == 98){
+  else if (flag == 98 && lastflag != flag){
+    Serial.print("Set flags: ");
+    Serial.println(flag);
     baro.init();
     getLatestSensorData(&sensors);
     delay(200);
     sensors.groundZ = baro.getEstimatedZ();
   }
-  else if (flag == 97){
+  else if (flag == 97 && lastflag != flag){
+    Serial.print("Set flags: ");
+    Serial.println(flag);
     bno.init();
     
     //getLatestSensorData(&sensors);
@@ -276,12 +284,24 @@ void loop() {
   }
   timed = micros();
   counter2 += 1;
-  
-  if (counter2 >= 50){
+  if (counter2%5 == 0){
     if (transceiverEnabled){
       espSendData.flag = 1;
       espSendData.values[0] = sensors.yaw;
       espSendData.values[1] = sensors.estimatedZ - sensors.groundZ;
+
+      blimp.send_esp_feedback(transceiverAddress, &espSendData);
+    }
+  }
+  if (counter2 >= 50){
+    if (transceiverEnabled){
+      espSendData.flag = 1;
+      espSendData.values[0] = sensors.estimatedZ - sensors.groundZ;
+      espSendData.values[1] = sensors.pitch;
+      espSendData.values[2] = sensors.roll;
+      espSendData.values[3] = sensors.yaw;
+      espSendData.values[4] = sensors.pitchrate;
+      espSendData.values[5] = sensors.rollrate;
 
       blimp.send_esp_feedback(transceiverAddress, &espSendData);
     }
@@ -306,12 +326,16 @@ void loop() {
     Serial.println(sensors.yaw);
     counter2 = 0;
   }
-  
+  lastflag = flag;
 
 
 }
 
-void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *weights, raw_t *raws){
+void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *weights, raw_t *raws, RollPitchAdjustments *rollPitchAdjust ){
+  if (lastflag == raws->flag)
+  {
+    return;
+  }
   Serial.print("Set flags: ");
   Serial.println(raws->flag);
   if (raws->flag == 10){// enables or disables feedback in these terms
@@ -348,8 +372,10 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
     PDterms->kpz = raws->data[4];
     PDterms->kdz = raws->data[5];
     PDterms->lx = raws->data[6];
-    pitchSign = raws->data[7];
-    pitchOffset = raws->data[8];
+    rollPitchAdjust->pitchSign = raws->data[7];
+    rollPitchAdjust->pitchOffset = raws->data[8];
+    rollPitchAdjust->rollSign = raws->data[9];
+    rollPitchAdjust->rollOffset = raws->data[10];
 
   }
   else if (raws->flag == 14){
@@ -367,6 +393,7 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
     z_int_high = raws->data[3];
     servo1offset = raws->data[4];
     servo2offset = raws->data[5];
+    rollPitchAdjust->rollPitchSwitch = raws->data[6] == 1.0f;
     
   }
 
@@ -468,9 +495,38 @@ void testMotors() {
 */
 
 void getLatestSensorData(sensors_t *sensors) {
+  if (rollPitchAdjust.rollPitchSwitch) // needs to be before and after due to use of rolling values;
+  {
+    float tempPitchrate = sensors->pitchrate;
+    sensors->pitchrate = sensors->rollrate;
+    sensors->rollrate = tempPitchrate;
+  }
   bno.updateSensors(sensors, &weights);
   sensors->estimatedZ = sensors->estimatedZ * weights.zGamma  + baro.getEstimatedZ()* (1 - weights.zGamma);
   sensors->velocityZ = sensors->velocityZ * weights.vzGamma + baro.getVelocityZ()*(1 - weights.zGamma);
+  if (rollPitchAdjust.rollPitchSwitch) // use this if roll and pitch are in the incorrect direction due to placement of BNO
+  {
+    float tempPitch = sensors->pitch;
+    sensors->pitch = sensors->roll;
+    sensors->roll = tempPitch;
+    float tempPitchrate = sensors->pitchrate;
+    sensors->pitchrate = sensors->rollrate;
+    sensors->rollrate = tempPitchrate;
+  }
+  sensors->pitch =  rollPitchAdjust.pitchSign * sensors->pitch + rollPitchAdjust.pitchOffset;//hack to invert pitch due to orientation of the sensor
+  while (sensors->pitch > 3.1416) {
+    sensors->pitch -= 3.1416*2;
+  }
+  while (sensors->pitch < -3.1416) {
+    sensors->pitch += 3.1416*2;
+  }
+  sensors->roll =  rollPitchAdjust.rollSign * sensors->roll + rollPitchAdjust.rollOffset;//hack to invert pitch due to orientation of the sensor
+  while (sensors->roll > 3.1416) {
+    sensors->roll -= 3.1416*2;
+  }
+  while (sensors->roll < -3.1416) {
+    sensors->roll += 3.1416*2;
+  }
 }
 
 float fzave = 0;
@@ -640,8 +696,12 @@ void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
   float term4 = sqrt(term1 - term2);
   float f1 = term3 / (2 * l); // in unknown units
   float f2 = term4 / (2 * l);
-  float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3) - sensors->pitch; // in radians
-  float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4) - sensors->pitch;
+  float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3); // in radians
+  float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4);
+  if (feedbackPD.pitch){
+    t1 -= sensors->pitch;
+    t2 -= sensors->pitch;
+  }
 
   // checking for full rotations
   while (t1 < -PI / 2)
