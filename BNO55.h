@@ -12,5 +12,5 @@ private:
 public:
     BNO55();
     void init();
-    void updateSensors(sensors_t *sensors, sensor_weights_t *weights);
+    void updateSensors(sensors_t *sensors, sensor_weights_t *weights, RollPitchAdjustments *rollPitchAdjust);
 };

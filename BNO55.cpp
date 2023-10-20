@@ -26,7 +26,7 @@ void BNO55::init(){
     
 }
 
-void BNO55::updateSensors(sensors_t *sensors, sensor_weights_t *weights){
+void BNO55::updateSensors(sensors_t *sensors, sensor_weights_t *weights, RollPitchAdjustments *rollPitchAdjust){
     // Serial.println("BNO Update!");
 
   if (bnoOn){

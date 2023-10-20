@@ -53,7 +53,7 @@ void BNO85::setReports(void) {
   }
 }
 
-void BNO85::updateSensors(sensors_t *sensors, sensor_weights_t *weights){
+void BNO85::updateSensors(sensors_t *sensors, sensor_weights_t *weights, RollPitchAdjustments *rollPitchAdjust){
     // Serial.println("BNO Update!");
   //bnoOn = false;
   if (bnoOn){
@@ -66,25 +66,57 @@ void BNO85::updateSensors(sensors_t *sensors, sensor_weights_t *weights){
       // is it the correct sensor data we want?
       if (myIMU.getSensorEventID() == SENSOR_REPORTID_ROTATION_VECTOR) {
 
-      sensors->roll = (myIMU.getRoll()) ; // In radians
-      sensors->pitch = (myIMU.getPitch()); // In radians
-      sensors->yaw = (myIMU.getYaw()) ; // In radians
-      
-      if (sensors->yaw > 3.1416f){
-        sensors->yaw -= 3.1416f*2;
-      }
+        sensors->roll = (myIMU.getRoll()) ; // In radians
+        sensors->pitch = (myIMU.getPitch()); // In radians
+        sensors->yaw = (myIMU.getYaw()) ; // In radians
+        
+        while (sensors->yaw > 3.1416f){
+          sensors->yaw -= 3.1416f*2;
+        }
+        while (sensors->yaw < -3.1416) {
+          sensors->yaw += 3.1416*2;
+        }
+        sensors->pitch =  rollPitchAdjust->pitchSign * sensors->pitch + rollPitchAdjust->pitchOffset;//hack to invert pitch due to orientation of the sensor
+        while (sensors->pitch > 3.1416) {
+          sensors->pitch -= 3.1416*2;
+        }
+        while (sensors->pitch < -3.1416) {
+          sensors->pitch += 3.1416*2;
+        }
+        sensors->roll =  rollPitchAdjust->rollSign * sensors->roll + rollPitchAdjust->rollOffset;//hack to invert pitch due to orientation of the sensor
+        while (sensors->roll > 3.1416) {
+          sensors->roll -= 3.1416*2;
+        }
+        while (sensors->roll < -3.1416) {
+          sensors->roll += 3.1416*2;
+        }
+        if (rollPitchAdjust->rollPitchSwitch) // use this if roll and pitch are in the incorrect direction due to placement of BNO
+        {
+          float tempPitch = sensors->pitch;
+          sensors->pitch = sensors->roll;
+          sensors->roll = tempPitch;
+          
+        }
       
       }
       // is it the correct sensor data we want?
       if (myIMU.getSensorEventID() == SENSOR_REPORTID_GYROSCOPE_CALIBRATED) {
 
       
+        if (rollPitchAdjust->rollPitchSwitch){
+          sensors->yawrate = sensors->yawrate *weights->yawRateGamma + myIMU.getGyroZ()* (1- weights->yawRateGamma);
+          sensors->rollrate = sensors->rollrate *weights->rollRateGamma+ myIMU.getGyroX()* (1- weights->rollRateGamma);
+          sensors->pitchrate = sensors->pitchrate *weights->pitchRateGamma+  myIMU.getGyroY()* (1- weights->pitchRateGamma);
+        } else {
+          sensors->yawrate = sensors->yawrate *weights->yawRateGamma + myIMU.getGyroZ()* (1- weights->yawRateGamma);
+          sensors->rollrate = sensors->rollrate *weights->rollRateGamma+ myIMU.getGyroY()* (1- weights->rollRateGamma);
+          sensors->pitchrate = sensors->pitchrate *weights->pitchRateGamma+  myIMU.getGyroX()* (1- weights->pitchRateGamma);
+        }
       
-        sensors->yawrate = sensors->yawrate *weights->yawRateGamma + myIMU.getGyroZ()* (1- weights->yawRateGamma);
-        sensors->rollrate = sensors->rollrate *weights->rollRateGamma+ myIMU.getGyroY()* (1- weights->rollRateGamma);
-        sensors->pitchrate = sensors->pitchrate *weights->pitchRateGamma+  myIMU.getGyroX()* (1- weights->pitchRateGamma);
       }
-    
+      
+      
+        
     }
   } else {
     sensors->yaw = 0;

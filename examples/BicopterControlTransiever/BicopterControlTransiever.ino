@@ -287,15 +287,6 @@ void loop() {
   if (counter2%5 == 0){
     if (transceiverEnabled){
       espSendData.flag = 1;
-      espSendData.values[0] = sensors.yaw;
-      espSendData.values[1] = sensors.estimatedZ - sensors.groundZ;
-
-      blimp.send_esp_feedback(transceiverAddress, &espSendData);
-    }
-  }
-  if (counter2 >= 50){
-    if (transceiverEnabled){
-      espSendData.flag = 1;
       espSendData.values[0] = sensors.estimatedZ - sensors.groundZ;
       espSendData.values[1] = sensors.pitch;
       espSendData.values[2] = sensors.roll;
@@ -305,6 +296,8 @@ void loop() {
 
       blimp.send_esp_feedback(transceiverAddress, &espSendData);
     }
+  }
+  if (counter2 >= 50){
     Serial.print(dt);
     Serial.print(',');
     Serial.print((bool)controls.ready);
@@ -495,38 +488,11 @@ void testMotors() {
 */
 
 void getLatestSensorData(sensors_t *sensors) {
-  if (rollPitchAdjust.rollPitchSwitch) // needs to be before and after due to use of rolling values;
-  {
-    float tempPitchrate = sensors->pitchrate;
-    sensors->pitchrate = sensors->rollrate;
-    sensors->rollrate = tempPitchrate;
-  }
-  bno.updateSensors(sensors, &weights);
+  
+  bno.updateSensors(sensors, &weights, &rollPitchAdjust);
   sensors->estimatedZ = sensors->estimatedZ * weights.zGamma  + baro.getEstimatedZ()* (1 - weights.zGamma);
   sensors->velocityZ = sensors->velocityZ * weights.vzGamma + baro.getVelocityZ()*(1 - weights.zGamma);
-  if (rollPitchAdjust.rollPitchSwitch) // use this if roll and pitch are in the incorrect direction due to placement of BNO
-  {
-    float tempPitch = sensors->pitch;
-    sensors->pitch = sensors->roll;
-    sensors->roll = tempPitch;
-    float tempPitchrate = sensors->pitchrate;
-    sensors->pitchrate = sensors->rollrate;
-    sensors->rollrate = tempPitchrate;
-  }
-  sensors->pitch =  rollPitchAdjust.pitchSign * sensors->pitch + rollPitchAdjust.pitchOffset;//hack to invert pitch due to orientation of the sensor
-  while (sensors->pitch > 3.1416) {
-    sensors->pitch -= 3.1416*2;
-  }
-  while (sensors->pitch < -3.1416) {
-    sensors->pitch += 3.1416*2;
-  }
-  sensors->roll =  rollPitchAdjust.rollSign * sensors->roll + rollPitchAdjust.rollOffset;//hack to invert pitch due to orientation of the sensor
-  while (sensors->roll > 3.1416) {
-    sensors->roll -= 3.1416*2;
-  }
-  while (sensors->roll < -3.1416) {
-    sensors->roll += 3.1416*2;
-  }
+  
 }
 
 float fzave = 0;
