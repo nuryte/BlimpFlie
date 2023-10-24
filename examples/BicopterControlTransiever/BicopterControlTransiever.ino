@@ -529,9 +529,12 @@ void addFeedback(controller_t *controls, sensors_t *sensors) {
     }
     
     //yaw feedback
-    if (PDterms->yaw) { 
-      
-      controls->tz = controls->tz + aveyaw * PDterms->kpyaw - sensors->yawrate*PDterms->kdyaw;
+    if (PDterms->yaw) {
+      // Computing error between angles
+      float e_yaw = controls->tz - sensors->yaw;
+      e_yaw = atan2(sin(e_yaw), cos(e_yaw));
+      // PD for yaw control
+      controls->tz = e_yaw * PDterms->kpyaw - sensors->yawrate*PDterms->kdyaw;
       
     }
     
