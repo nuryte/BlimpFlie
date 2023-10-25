@@ -51,10 +51,7 @@ void setup() {
     Serial.print("ESP Board MAC Address:  ");
     Serial.print(WiFi.macAddress());
     
-    //esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
-
-    // 5. Register the onDataReceive function
-    esp_now_register_recv_cb(onDataReceive);
+    
 }
 
 unsigned long timed = micros();
@@ -297,36 +294,48 @@ void parseAndStoreMac(int index, String &mac)
   }
 }
 unsigned long lastReceivedTimestamp = 0; // Holds the timestamp of the last received data
+#define MAX_FLAGS 6
+float storedData[MAX_FLAGS][6] = {0};  // Data storage
+bool flagReceived[MAX_FLAGS] = {false};  // Keep track of received flags
 
-// 3. Modify the onDataReceive function
+// Modified onDataReceive function to update the flagReceived array
 void onDataReceive(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
-  
     lastReceivedTimestamp = millis();
     if (data_len == sizeof(ReceivedData)) {
-      
-      memcpy(&latestReceivedData, data, data_len);
+        memcpy(&latestReceivedData, data, data_len);
         
-        
+        if (latestReceivedData.flag >= 0 && latestReceivedData.flag < MAX_FLAGS) {
+            for (int i = 0; i < 6; i++) {
+                storedData[latestReceivedData.flag][i] = latestReceivedData.values[i];
+            }
+            flagReceived[latestReceivedData.flag] = true;  // Mark this flag as received
+        } else {
+            //Serial.println("Error: Invalid flag received.");
+        }
     }
 }
 
-// 4. Modify the OnDataSent function
+// Modify the OnDataSent function
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-    // char macStr[18];
-    // snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
-    //          mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-    // Serial.print("Packet to: ");
-    // Serial.print(macStr);
     Serial.print("Time: ");
     Serial.print(lastReceivedTimestamp);
-    Serial.print("ms, Flag=");
-    Serial.print(latestReceivedData.flag);
-    Serial.print(", Values=|");
-    for (int i = 0; i < 6; i++) {
-        Serial.print(latestReceivedData.values[i], 1);  // 4 is the number of decimal places
-        if (i < 5) Serial.print(",");
+    Serial.print("ms, ");
+
+    // Only print the data for flags that have been received
+    for (int flag = 0; flag < MAX_FLAGS; flag++) {
+        if (flagReceived[flag]) {  // Check if this flag's data has been received
+            Serial.print("Flag=");
+            Serial.print(flag);
+            Serial.print(", Values=|");
+            for (int i = 0; i < 6; i++) {
+                Serial.print(storedData[flag][i], 3);
+                if (i < 5) Serial.print(",");
+            }
+            Serial.print("| ");
+        }
     }
-    Serial.print("| Status: ");
+    
+    Serial.print("Status: ");
     Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
 }
 
