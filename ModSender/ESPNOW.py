@@ -1,6 +1,7 @@
 import serial
 import time
 import re
+from collections import defaultdict  # Import defaultdict
 
 NULL_ADDRESS = ["00:00:00:00:00:00"]  # Default value for broadcast mode
 DELIMITER = "|"  # Delimiter for the message
@@ -8,9 +9,10 @@ pattern = r"Flag=(-?\d+), Values=\|([-?\d.,]+)\|"
 
 # ESP-NOW Control Class
 class ESPNOWControl:
-    def __init__(self, serial_port: str, mac_addresses: list = NULL_ADDRESS, ESP_VERBOSE = True) -> None:
+    def __init__(self, serial_port: str, mac_addresses: list = NULL_ADDRESS, ESP_VERBOSE=True) -> None:
         self.verbose = ESP_VERBOSE
-        self.parsed_data = {}
+        # Initialize parsed_data as a defaultdict that returns a list of six zeros by default
+        self.parsed_data = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         if self._init_serial(serial_port):
             print("Serial connection established")
         else:
@@ -47,7 +49,6 @@ class ESPNOWControl:
         @param       {list} mac_addresses: List of MAC addresses to send
         @return      {*} None
         """
-        
         print("Sending MAC addresses...")
         while True:
             mac_data = "${}#{}$".format(len(mac_addresses), "#".join(mac_addresses))
@@ -96,7 +97,9 @@ class ESPNOWControl:
             return False
         return False
 
-    def getFeedback(self):
+    def getFeedback(self, flag=None):
+        if flag is not None:
+            return self.parsed_data[flag]
         return self.parsed_data
 
     def close(self) -> None:

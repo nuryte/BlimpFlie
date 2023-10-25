@@ -30,7 +30,7 @@ SLAVE_INDEX = 2 #-1 means broadcast
 BRODCAST_CHANNEL = 1 # SLAVE_INDEX will override this value if SLAVE_INDEX is not -1
 
 
-joyhandler = JoystickHandler()
+#joyhandler = JoystickHandler()
 esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
 robConfig = RobotConfig(esp_now, "ModSender\\robot_configs.json")
 
@@ -39,8 +39,8 @@ robConfig = RobotConfig(esp_now, "ModSender\\robot_configs.json")
 robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 #robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 
-# robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
-# robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
+robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
+robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
 robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)
 
 
@@ -48,9 +48,9 @@ y = False
 try:
     while not y:
 
-        outputs, y = joyhandler.get_outputs()
-        #outputs = [0]*13
-        feedback  = esp_now.getFeedback()
+        #outputs, y = joyhandler.get_outputs()
+        outputs = [0]*13
+        feedback  = esp_now.getFeedback(1)
         esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
         #print(feedback)
         
