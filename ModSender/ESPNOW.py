@@ -6,9 +6,10 @@ NULL_ADDRESS = ["00:00:00:00:00:00"]  # Default value for broadcast mode
 DELIMITER = "|"  # Delimiter for the message
 pattern = r"Flag=(-?\d+), Values=\|([-?\d.,]+)\|"
 
+
 # ESP-NOW Control Class
 class ESPNOWControl:
-    def __init__(self, serial_port: str, mac_addresses: list = NULL_ADDRESS, ESP_VERBOSE = True) -> None:
+    def __init__(self, serial_port: str, mac_addresses: list = NULL_ADDRESS, ESP_VERBOSE=True) -> None:
         """
         @description: Initialize the serial connection and send the MAC addresses
         @param       {*} self: -
@@ -19,7 +20,7 @@ class ESPNOWControl:
         """
         self.verbose = ESP_VERBOSE
         self.feed_flag = 0
-        self.feedback = [0,0,0,0,0,0]
+        self.feedback = [0, 0, 0, 0, 0, 0]
         if self._init_serial(serial_port):
             print("Serial connection established")
         else:
@@ -28,7 +29,7 @@ class ESPNOWControl:
         print("ESP-NOW Control Initialized Successfully")
         self.broadcast_mode = False
         if (
-            mac_addresses == NULL_ADDRESS
+                mac_addresses == NULL_ADDRESS
         ):  # If no MAC addresses are provided, broadcast mode is enabled
             print("No MAC addresses provided, broadcast mode enabled")
             self.broadcast_mode = True
@@ -41,10 +42,11 @@ class ESPNOWControl:
         @return      {bool} True if the connection is successful, False otherwise
         """
         try:
-            self.serial = serial.Serial(serial_port, 115200, timeout=1)
+            self.serial = serial.Serial(serial_port, 115200, timeout=0.01)
             print(f"Connected to port {serial_port}")
             while self.serial.in_waiting:  # Clear the buffer
                 self.serial.readline().decode(errors="ignore").strip()
+            #     line = serial_port.readline().decode('utf-8').strip()
             time.sleep(1)
             return True
         except serial.SerialException as e:
@@ -58,7 +60,7 @@ class ESPNOWControl:
         @param       {list} mac_addresses: List of MAC addresses to send
         @return      {*} None
         """
-        
+
         print("Sending MAC addresses...")
         while True:
             mac_data = "${}#{}$".format(len(mac_addresses), "#".join(mac_addresses))
@@ -73,7 +75,7 @@ class ESPNOWControl:
             time.sleep(0.5)
 
     def send(
-        self, control_params: list, brodcast_channel: int, slaveindex: int
+            self, control_params: list, brodcast_channel: int, slaveindex: int
     ) -> None:
         """
         @description: Send the control parameters to the receiver ESP32
@@ -84,14 +86,14 @@ class ESPNOWControl:
         @return      {*} None
         """
         if (
-            len(control_params) != 13
+                len(control_params) != 13
         ):  # Check if the number of control parameters is correct
             raise ValueError(
                 "Expected 13 control parameters but got {}".format(len(control_params))
             )
         raw_massage = control_params.copy()
         if (
-            self.broadcast_mode or slaveindex == -1
+                self.broadcast_mode or slaveindex == -1
         ):  # Empty mac_addresses or slaveindex is -1
             raw_massage.append(brodcast_channel)
             raw_massage.append(-1)
@@ -102,7 +104,6 @@ class ESPNOWControl:
         message = str("<" + DELIMITER.join(map(str, raw_massage)) + ">")
         self.serial.write(message.encode())
         try:
-
             incoming = self.serial.readline().decode(errors="ignore").strip()
             match = re.search(pattern, incoming)
             if match:
@@ -131,3 +132,20 @@ class ESPNOWControl:
         if self.serial.is_open:
             self.serial.close()
             print("Serial connection closed.")
+
+    def read_from_serial_port(self):
+        try:
+            incoming = self.serial.readline().decode(errors="ignore").strip()
+            match = re.search(pattern, incoming)
+            if match:
+                self.feed_flag = int(match.group(1))  # Extract and convert the flag to an integer
+                values_str = match.group(2)  # Extract the values as a string
+
+                # Split the values string by commas to get a list of floats
+                self.feedback = [float(val) for val in values_str.split(',')]
+            if self.verbose:
+                print("Sending ", incoming)
+            return incoming[-4:] == "cess"
+        except UnicodeDecodeError:
+            print("Received malformed data!")
+            return False

@@ -67,7 +67,10 @@ class JoystickHandler:
 
         self.fx = -1* self.right_vertical
         self.fz = self.fz + -1* self.left_vertical * dt if self.b_state else 0
-        self.tz = -1* self.right_horizontal
+        self.tz = self.tz - 1* self.right_horizontal*dt
+
+
+
         return [int(self.b_state), self.fx, self.fy, self.fz, self.tx, self.ty, self.tz, 0, 0, 0, 0, 0, 0]
 
     def get_sblimp_controls(self):
@@ -78,7 +81,7 @@ class JoystickHandler:
         """Get the output controls based on blimp type."""
         self.update_joy_params()
         if self.blimp_type == "bicopter":
-            return self.get_bicopter_controls(), self.y_state
+            return self.get_bicopter_controls(), self.y_state, self.a_state
 
         
 
