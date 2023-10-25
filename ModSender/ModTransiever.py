@@ -50,10 +50,13 @@ y = False
 try:
     while not y:
 
+
+      
         outputs, y = joyhandler.get_outputs()
         #outputs = [0]*13
-        feedback  = esp_now.getFeedback()
-        mygui.update_interface(feedback[1][3], outputs[6], feedback[1][0], outputs[3])
+        feedback  = esp_now.getFeedback(1)
+        mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])
+        
         esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
         #print(feedback)
         
