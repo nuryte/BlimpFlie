@@ -60,6 +60,8 @@ class SimpleGUI:
         hight_label = self.ax.text(1.4, -1.2, "Height", fontsize=12, color="white")
         yaw_label = self.ax.text(-0.1, -1.2, "Yaw", fontsize=12, color="white")
 
+        # plt.show()
+
     def _angle_to_coordinates(self, radians: float, radius: float = 1.0) -> tuple:
         """
         @description: Convert an angle to coordinates on the circle
@@ -140,3 +142,20 @@ class SimpleGUI:
         self.current_height_value.set_color("r")  # Setting the text color to red
 
         plt.draw()
+
+
+
+if __name__ == "__main__":
+    mygui = SimpleGUI()
+
+    # while True:
+    #     # outputs, y = joyhandler.get_outputs()
+    #     # outputs = [0]*13
+    #     # feedback = esp_now.getFeedback(1)
+    #     # mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])
+    #
+    #     mygui.update_interface(0,0,0,0)
+    #     # esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
+    #     # print(feedback)
+    #
+    #     time.sleep(0.1)
