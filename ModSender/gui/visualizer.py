@@ -3,14 +3,18 @@ Author       : Hanqing Qi
 Date         : 2023-10-24 16:30:43
 LastEditors  : Hanqing Qi
 LastEditTime : 2023-10-24 19:45:46
-FilePath     : /ModSender/simpleGUI.py
+FilePath     : /ModSender/visualizer.py
 Description  : Simple GUI for ModSender
 """
+import time
+from math import pi
+from random import random
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-class SimpleGUI:
+class SensorGUI:
     def __init__(self):
         # Plotting initialization
         plt.ion()
@@ -144,18 +148,13 @@ class SimpleGUI:
         plt.draw()
 
 
-
 if __name__ == "__main__":
-    mygui = SimpleGUI()
+    mygui = SensorGUI()
 
-    # while True:
-    #     # outputs, y = joyhandler.get_outputs()
-    #     # outputs = [0]*13
-    #     # feedback = esp_now.getFeedback(1)
-    #     # mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])
-    #
-    #     mygui.update_interface(0,0,0,0)
-    #     # esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
-    #     # print(feedback)
-    #
-    #     time.sleep(0.1)
+    # Test plotting with increasing numbers
+    for i in range(100):
+        mygui.update_interface(i*2*pi/100, pi*random()/6, i*0.2, 0)
+        plt.pause(0.05)
+
+    plt.ioff()
+    plt.show()

@@ -1,7 +1,7 @@
-from joystickHandler import JoystickHandler
-from ESPNOW import ESPNOWControl
-from robotConfig import RobotConfig
-from gui.simpleGUI import SimpleGUI
+from teleop.joystickHandler import JoystickHandler
+from comm.ESPNOW import ESPNOWControl
+from robot.robotConfig import RobotConfig
+from gui.visualizer import SensorGUI
 import time
 
 #ESPNOW PARAMS
@@ -43,7 +43,7 @@ robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
 robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
 robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)
-mygui = SimpleGUI()
+mygui = SensorGUI()
 
 
 y = False
