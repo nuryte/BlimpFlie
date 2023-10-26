@@ -13,4 +13,5 @@ public:
     void init();
     float getEstimatedZ();
     float getVelocityZ();
+    bool updateBarometer();
 };
