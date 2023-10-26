@@ -6,7 +6,7 @@ from gui.visualizer import SensorGUI
 import time
 
 # User interface
-mygui = SensorGUI()
+mygui = SensorGUI(GUI_ENABLED)
 mygui.sleep(0.02)
 
 # Joystick
@@ -21,8 +21,12 @@ robConfig = RobotConfig(esp_now, ROBOT_CONFIG_FILE)
 robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 # robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 
-robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure IMU
-robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
+if YAW_SENSOR:
+    robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure IMU
+
+if Z_SENSOR:
+    robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
+
 robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)  # Start communication
 
 ###### Communicate until Y button (Exit) is pressed #####

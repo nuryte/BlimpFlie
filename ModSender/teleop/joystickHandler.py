@@ -1,6 +1,9 @@
 import pygame
 import time
 
+from ModSender.parameters import YAW_SENSOR
+
+
 class JoystickHandler:
     def __init__(self, blimp_type="bicopter", joy_index=0):
         self.blimp_type = blimp_type
@@ -67,7 +70,12 @@ class JoystickHandler:
 
         self.fx = -1* self.right_vertical
         self.fz = self.fz + -1* self.left_vertical * dt if self.b_state else 0
-        self.tz = -1* self.right_horizontal
+
+        if YAW_SENSOR:
+            self.tz += -1 * self.right_horizontal
+        else:
+            self.tz = -1 * self.right_horizontal
+
         return [int(self.b_state), self.fx, self.fy, self.fz, self.tx, self.ty, self.tz, 0, 0, 0, 0, 0, 0]
 
     def get_sblimp_controls(self):
