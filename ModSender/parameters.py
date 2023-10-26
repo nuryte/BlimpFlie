@@ -18,7 +18,8 @@ LIST_OF_MAC_ADDRESS = [
     "DC:54:75:D7:F7:FC", #7 hanqing
     "48:27:E2:E6:E6:44", #8 kim
     "34:85:18:91:24:F0", #9
-    "48:27:E2:E6:E1:00", #10 david
+    "48:27:E2:E6:E4:0C", #10 Big Wall
+    "48:27:E2:E6:E1:00", #11 david
 ]
 MASTER_MAC = "C0:49:EF:EB:FE:34"
 SLAVE_INDEX = 10 #-1 means broadcast
