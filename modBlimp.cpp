@@ -712,7 +712,10 @@ void ModBlimp::escarm(Servo &thrust1, Servo &thrust2)
 }
 
 
-
+void ModBlimp::getSensorRaws(ReceivedData *sensorData)
+{
+  espNow.getSensorRaws(sensorData);
+}
 
 // Enter arming sequence for ESC
 void ModBlimp::calibrate_esc(Servo &thrust1, Servo &thrust2)

@@ -77,6 +77,7 @@ class ModBlimp {
         float clamp(float in, float min, float max);
         void send_udp_feedback(String dat1, String dat2, String dat3, String dat4);
         void calibrationMode(int flag);
+        void getSensorRaws(ReceivedData *sensorData);
 
         void send_esp_feedback(uint8_t mac_addr[6], ReceivedData* data);
         esp_err_t attemptToAddPeer(uint8_t mac_addr[6]);
