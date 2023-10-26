@@ -1,12 +1,12 @@
 from joystickHandler import JoystickHandler
 from ESPNOW import ESPNOWControl
 from robotConfig import RobotConfig
-from simpleGUI import SimpleGUI
+from gui.simpleGUI import SimpleGUI
 import time
 
 #ESPNOW PARAMS
 ESP_VERBOSE = True
-PORT = "/dev/cu.wchusbserial1130" #serial port for the transiever
+PORT = "COM12" #serial port for the transiever
 LIST_OF_MAC_ADDRESS = [
     "34:85:18:91:BC:94",
     "34:85:18:91:BE:34",

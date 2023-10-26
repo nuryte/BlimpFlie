@@ -22,6 +22,7 @@ init_flags_t init_flags = {
   .verbose = false,
   .sensors = false,
   .escarm = false,
+  .calibrate_esc = false,
   .UDP = false,
   .Ibus = false,
   .ESPNOW = true,
