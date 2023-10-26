@@ -17,7 +17,7 @@ flags to be used in the init
 -bool verbose: allows some debug print statments
 -bool sensors: enables or disables the sensorsuite package: if false all values will be 0, and sensorReady =false in the sensor 
 -bool UDP: starts up the UDP connection such that other UDP functions will be enabled
--bool servo: switching between 180 degree servo and 270 degree: false will be 180 degree and true will be 270
+-bool servo: switching between 180 and 270 degree: false will be 180 degree and true will be 270
 -int motor_type: determines if you are using brushless or brushed motors: 0 = brushless, 1 = brushed;
 -int mode: sets which controller to listen to: 0 = UDP, 1 = IBUS,2 = espnow, -1 = None;
 -int control: sets which type of controller to use: 0 = bicopter, 1 = spinning(TODO),2 = s-blimp, -1 = None;
