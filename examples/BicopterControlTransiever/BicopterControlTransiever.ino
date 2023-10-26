@@ -1,15 +1,14 @@
 #include "modBlimp.h"
 
-// #include "BNO85.h"
-// #include "baro390.h"
+#include "BNO85.h"
+#include "baro390.h"
 
-#include "BNO55.h"
-#include "baro280.h"
-
+// #include "BNO55.h"
+// #include "baro280.h"
 
 ModBlimp blimp;
-BNO55 bno;
-baro280 baro;
+BNO85 bno;
+baro390 baro;
 
 IBusBM IBus; 
 
@@ -18,6 +17,7 @@ flags to be used in the init
 -bool verbose: allows some debug print statments
 -bool sensors: enables or disables the sensorsuite package: if false all values will be 0, and sensorReady =false in the sensor 
 -bool UDP: starts up the UDP connection such that other UDP functions will be enabled
+-bool servo: switching between 180 degree servo and 270 degree: false will be 180 degree and true will be 270
 -int motor_type: determines if you are using brushless or brushed motors: 0 = brushless, 1 = brushed;
 -int mode: sets which controller to listen to: 0 = UDP, 1 = IBUS,2 = espnow, -1 = None;
 -int control: sets which type of controller to use: 0 = bicopter, 1 = spinning(TODO),2 = s-blimp, -1 = None;
@@ -25,13 +25,14 @@ flags to be used in the init
 init_flags_t init_flags = {
   .verbose = false,
   .sensors = false,
-  .escarm = false,
+  .escarm = true,
   .calibrate_esc = false,
   .UDP = false,
   .Ibus = false,
   .ESPNOW = true,
+  .servo = true,
   .PORT = 1345,
-  .motor_type = 1,
+  .motor_type = 0,
   .mode = 2,
   .control = 0,
 };
@@ -224,7 +225,8 @@ void loop() {
   
   
 
-  if ((int)(flag/10) == 0){// flag == 0, 1, 2uses control of what used to be the correct way
+  if ((int)(flag/10) == 0){// flag == 0, 1, 2 uses control of what used to be the correct way
+    zero(init_flags.servo, &outputs); // call zeroing function for servo
     return; //changes outputs using the old format
   } else if ((int)(flag/10) == 1){ //flag == 10, 11, 12
     //set FLAGS for other stuff
@@ -278,7 +280,15 @@ void loop() {
     } 
     
     addFeedback(&controls, &sensors); //this function is implemented here for you to customize
-    getOutputs(&controls, &sensors, &outputs);
+
+    // Init flags to select which getOutput function is selected
+    if (init_flags.servo == 0){
+      // 180 degree servo getOutputs
+      getOutputs(&controls, &sensors, &outputs);
+    } else {
+      // 270 degree servo getOutputs
+      getOutputs270(&controls, &sensors, &outputs);
+    } 
 
   }
   else if (flag == 98 && lastflag != flag){
@@ -580,7 +590,6 @@ void getOutputs270(controller_t *controls, sensors_t *sensors, actuation_t *out)
 {
 
   // set up output
-
   // set output to default if controls not ready
   if (controls->ready == false)
   {
@@ -613,6 +622,9 @@ void getOutputs270(controller_t *controls, sensors_t *sensors, actuation_t *out)
   float f2 = term4 / (2 * l);
   float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3) - sensors->pitch; // in radians
   float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4) - sensors->pitch;
+
+  t1 = -1 * (t1 - PI);
+  t2 = -1 * (t2 - PI);
 
   // checking for full rotations
   while (t1 < -PI / 4)
@@ -651,82 +663,81 @@ void getOutputs270(controller_t *controls, sensors_t *sensors, actuation_t *out)
 }
 
 
-// //creates the output values used for actuation from the control values
-// void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
-// {
+//creates the output values used for actuation from the control values
+void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
+{
+  // set up output
 
-//   // set up output
+  // set output to default if controls not ready
+  if (controls->ready == false)
+  {
+    out->s1 = .5f;
+    out->s2 = .5f;
+    out->m1 = 0;
+    out->m2 = 0;
+    out->ready = false;
+    return;
+  }
 
-//   // set output to default if controls not ready
-//   if (controls->ready == false)
-//   {
-//     out->s1 = .5f;
-//     out->s2 = .5f;
-//     out->m1 = 0;
-//     out->m2 = 0;
-//     out->ready = false;
-//     return;
-//   }
+  out->ready = true;
+  // inputs to the A-Matrix
+  float l = PDterms->lx; //.3
 
-//   out->ready = true;
-//   // inputs to the A-Matrix
-//   float l = PDterms->lx; //.3
+  float fx = clamp(controls->fx, -1, 1);                  // setpoint->bicopter.fx;
+  float fz = clamp(controls->fz, 0.1, 2);                 // setpoint->bicopter.fz;
+  //float maxRadsYaw = .07; //.1f                                 //.175;
+  //float magxz = max(fz * tan(maxRadsYaw), fx * l * 0.17f); // limits the yaw based on the magnitude of the force
+  float taux = clamp(controls->tx, -l + (float)0.01, l - (float)0.01);
+  float tauz = clamp(controls->tz, -1, 1) ;//* magxz; // limit should be .25 setpoint->bicopter.tauz; //- stateAttitudeRateYaw
 
-//   float fx = clamp(controls->fx, -1, 1);                  // setpoint->bicopter.fx;
-//   float fz = clamp(controls->fz, 0.1, 2);                 // setpoint->bicopter.fz;
-//   //float maxRadsYaw = .07; //.1f                                 //.175;
-//   //float magxz = max(fz * tan(maxRadsYaw), fx * l * 0.17f); // limits the yaw based on the magnitude of the force
-//   float taux = clamp(controls->tx, -l + (float)0.01, l - (float)0.01);
-//   float tauz = clamp(controls->tz, -1, 1) ;//* magxz; // limit should be .25 setpoint->bicopter.tauz; //- stateAttitudeRateYaw
+  // inverse A-Matrix calculations
+  float term1 = l * l * fx * fx + l * l * fz * fz + taux * taux + tauz * tauz;
+  float term2 = 2 * fz * l * taux - 2 * fx * l * tauz;
+  float term3 = sqrt(term1 + term2);
+  float term4 = sqrt(term1 - term2);
+  float f1 = term3 / (2 * l); // in unknown units
+  float f2 = term4 / (2 * l);
+  float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3); // in radians
+  float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4);
+  if (feedbackPD.pitch){
+    t1 -= sensors->pitch;
+    t2 -= sensors->pitch;
+  }
 
-//   // inverse A-Matrix calculations
-//   float term1 = l * l * fx * fx + l * l * fz * fz + taux * taux + tauz * tauz;
-//   float term2 = 2 * fz * l * taux - 2 * fx * l * tauz;
-//   float term3 = sqrt(term1 + term2);
-//   float term4 = sqrt(term1 - term2);
-//   float f1 = term3 / (2 * l); // in unknown units
-//   float f2 = term4 / (2 * l);
-//   float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3); // in radians
-//   float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4);
-//   if (feedbackPD.pitch){
-//     t1 -= sensors->pitch;
-//     t2 -= sensors->pitch;
-//   }
+  // checking for full rotations
+  while (t1 < -PI / 2)
+  {
+    t1 = t1 + 2 * PI;
+  }
+  while (t1 > 3 * PI / 2)
+  {
+    t1 = t1 - 2 * PI;
+  }
+  while (t2 < -PI / 2)
+  {
+    t2 = t2 + 2 * PI;
+  }
+  while (t2 > 3 * PI / 2)
+  {
+    t2 = t2 - 2 * PI;
+  }
 
-//   // checking for full rotations
-//   while (t1 < -PI / 2)
-//   {
-//     t1 = t1 + 2 * PI;
-//   }
-//   while (t1 > 3 * PI / 2)
-//   {
-//     t1 = t1 - 2 * PI;
-//   }
-//   while (t2 < -PI / 2)
-//   {
-//     t2 = t2 + 2 * PI;
-//   }
-//   while (t2 > 3 * PI / 2)
-//   {
-//     t2 = t2 - 2 * PI;
-//   }
-
-//   // converting values to a more stable form
+  // converting values to a more stable form
   
-//   out->s1 = clamp(t1 + servo1offset, 0, PI) / (PI); // cant handle values between PI and 2PI
-//   out->s2 = clamp(t2 + servo2offset, 0, PI) / (PI);
-//   out->m1 = clamp(f1, 0, 1);
-//   out->m2 = clamp(f2, 0, 1);
-//   if (out->m1 < 0.02f)
-//   {
-//     out->s1 = 0.5f;
-//   }
-//   if (out->m2 < 0.02f)
-//   {
-//     out->s2 = 0.5f;
-//   }
-//   return;
-// }
+  out->s1 = clamp(t1 + servo1offset, 0, PI) / (PI); // cant handle values between PI and 2PI
+  out->s2 = clamp(t2 + servo2offset, 0, PI) / (PI);
+  out->m1 = clamp(f1, 0, 1);
+  out->m2 = clamp(f2, 0, 1);
+  if (out->m1 < 0.02f)
+  {
+    out->s1 = 0.5f;
+  }
+  if (out->m2 < 0.02f)
+  {
+    out->s2 = 0.5f;
+  }
+  return;
+}
 
 float clamp(float in, float min, float max){
   if (in< min){
@@ -738,5 +749,22 @@ float clamp(float in, float min, float max){
   }
 }
 
-
+// Function for initialising the servos whether they're 180 or 270 degree variants
+void zero(bool servo, actuation_t *out){
+  if (servo == 0){
+  // 180 servo
+  out->s1 = .5f;
+  out->s2 = .5f;
+  out->m1 = 0;
+  out->m2 = 0;
+  out->ready = false;
+  } else {
+  // 270 servo
+  out->s1 = 0.33f;
+  out->s2 = 0.33f;
+  out->m1 = 0;
+  out->m2 = 0;
+  out->ready = false;
+  }
+} 
 
