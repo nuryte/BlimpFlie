@@ -148,13 +148,21 @@ class SensorGUI:
         plt.draw()
 
 
+    def sleep(self, delay=0.05):
+        """
+        Wait using plt
+        :param delay: time to wait
+        """
+        plt.pause(0.05)
+
+
 if __name__ == "__main__":
     mygui = SensorGUI()
 
     # Test plotting with increasing numbers
     for i in range(100):
         mygui.update_interface(i*2*pi/100, pi*random()/6, i*0.2, 0)
-        plt.pause(0.05)
+        mygui.sleep()
 
     plt.ioff()
     plt.show()

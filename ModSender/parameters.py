@@ -1,3 +1,9 @@
+
+
+ROBOT_CONFIG_FILE = "./robot_configs.json"
+
+#ESPNOW PARAMS
+# MASTER_MAC = "34:85:18:91:C7:80" #address of the transiever
 ESP_VERBOSE = True
 PORT = "COM12" #serial port for the transiever
 LIST_OF_MAC_ADDRESS = [
