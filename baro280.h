@@ -3,6 +3,7 @@ class baro280
 {
 private:
     unsigned long tStart = micros();
+    unsigned long dtBaro = 0;
     bool baroOn = false;
     Adafruit_BMP280 bme;
     uint16_t BMP280_SAMPLERATE_DELAY_MS = 63; //how often to read data from the board
@@ -13,4 +14,5 @@ public:
     void init();
     float getEstimatedZ();
     float getVelocityZ();
+    bool updateBarometer();
 };

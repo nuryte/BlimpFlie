@@ -39,19 +39,24 @@ void baro280::init(){
     
     
 }
-
-float baro280::getEstimatedZ(){
+bool baro280::updateBarometer(){
     if (baroOn){
         if ((micros() - tStart) > (BMP280_SAMPLERATE_DELAY_MS * 1000)) {
             oldZ = estimatedZ;
             estimatedZ = bme.readAltitude(1013.25);
+            dtBaro = micros() - tStart;
             tStart = micros();
+            return true;
         }
     }
+    return false;
+}
+
+float baro280::getEstimatedZ(){
     return estimatedZ;
 
 
 }
 float baro280::getVelocityZ(){
-    return estimatedZ - oldZ;
+    return (estimatedZ - oldZ)*dtBaro;
 }

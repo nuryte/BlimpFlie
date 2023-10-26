@@ -26,6 +26,7 @@ init_flags_t init_flags = {
   .verbose = false,
   .sensors = false,
   .escarm = false,
+  .calibrate_esc = false,
   .UDP = false,
   .Ibus = false,
   .ESPNOW = true,
@@ -508,9 +509,11 @@ void testMotors() {
 void getLatestSensorData(sensors_t *sensors) {
   
   bno.updateSensors(sensors, &weights, &rollPitchAdjust);
-  sensors->estimatedZ = sensors->estimatedZ * weights.zGamma  + baro.getEstimatedZ()* (1 - weights.zGamma);
-  sensors->velocityZ = sensors->velocityZ * weights.vzGamma + baro.getVelocityZ()*(1 - weights.zGamma);
-  
+  if (baro.updateBarometer())
+  {
+    sensors->estimatedZ = sensors->estimatedZ * weights.zGamma  + baro.getEstimatedZ()* (1 - weights.zGamma);
+    sensors->velocityZ = sensors->velocityZ * weights.vzGamma + baro.getVelocityZ()*(1 - weights.zGamma);
+  }
 }
 
 float fzave = 0;

@@ -7,7 +7,7 @@ ModBlimp blimp;
 BNO85 bno;
 baro390 baro;
 
-IBusBM IBus; 
+//IBusBM IBus; 
 
 /*
 flags to be used in the init 
@@ -22,9 +22,8 @@ init_flags_t init_flags = {
   .verbose = false,
   .sensors = false,
   .escarm = false,
-  .calibrate_esc = false,
   .UDP = false,
-  .Ibus = false,
+  .Ibus = true,
   .ESPNOW = true,
   .PORT = 1345,
   .motor_type = 0,
@@ -74,21 +73,21 @@ sensor_weights_t weights = {
 
 
 /*
-PD terms for use in the feedback controller
-- bool roll, pitch, yaw, x, y, z, rotation:
+PD terms for use in the feedback controller 
+- bool roll, pitch, yaw, x, y, z, rotation: 
           enables that type of feedback (true means feedback is on for that state variable)
-- float Croll, Cpitch, Cyaw, Cx, Cy, Cz, Cabsz:
+- float Croll, Cpitch, Cyaw, Cx, Cy, Cz, Cabsz: 
           KP term applied to the controller input
-- float kproll, kdroll, kppitch, kdpitch, kpyaw, kdyaw:
+- float kproll, kdroll, kppitch, kdpitch, kpyaw, kdyaw: 
 - float kpx, kdx, kpy, kdy, kpz, kdz;
-          Kp and kd terms applied to each feedback mechanism using the sensors
+          Kp and kd terms applied to each feedback mechanism using the sensors 
           (some do not have sensor availibility like x and y)
 - float lx;
           a control variable used as the arm between the center of mass and the propellers
 */
 feedback_t feedbackPD = {
   .roll = false,
-  .pitch = false,
+  .pitch = false, 
   .yaw = false,
   .x = false,
   .y = false,
@@ -96,7 +95,7 @@ feedback_t feedbackPD = {
   .rotation = false,
 
   .Croll = 1,
-  .Cpitch = 0,
+  .Cpitch = 0, 
   .Cyaw = 1,
   .Cx = 1,
   .Cy = 0,
@@ -120,8 +119,15 @@ feedback_t feedbackPD = {
   .lx = .15,
 };
 // EXTRA TERMS
-float pitchSign = 1;
-float pitchOffset = 0;
+RollPitchAdjustments rollPitchAdjust = {
+  .rollPitchSwitch = false,
+  .pitchSign = 1,
+  .pitchOffset = 0,
+  .rollSign = 1,
+  .rollOffset = 0,
+};
+
+
 float kiz = 0;
 float integral_dt = .01;
 float z_int_low = 0;
@@ -134,6 +140,10 @@ float z_integral = 0;
 float servo1offset = 0;
 float servo2offset = 0;
 
+//sender feedback 
+bool transceiverEnabled = false;
+uint8_t transceiverAddress[6];
+ReceivedData espSendData;
 
 feedback_t * PDterms = &feedbackPD;
 //storage variables
@@ -143,15 +153,17 @@ raw_t raws;
 actuation_t outputs;
 
 
+//HardwareSerial MySerial0(0);
 void setup() {
-
-
+  
+    
   //initializes systems based on flags and saves flags into the system
   blimp.init(&init_flags, &init_sensors, &feedbackPD);
-
+    
   delay(100);
   // baro.init();
   //bno.init();
+
 
   getLatestSensorData(&sensors);
   sensors.groundZ = baro.getEstimatedZ();
@@ -165,13 +177,15 @@ bool snapon = 0;
 // float resyncTimer = 0;
 unsigned long timed = micros();
 
+int lastflag = 0;
+
 int counter2 = 0;
 void loop() {
 
-
+  
 
   /*
-  //    attempts to get the lastest information about the CONTROLLER and places them into the
+  //    attempts to get the lastest information about the CONTROLLER and places them into the 
   //    raw_t data structure
   //    contains: flag, ready, data[11]
   */
@@ -188,29 +202,24 @@ void loop() {
   if flag = 22: do nicla low level control
   if flag = 23: do nicla high level control
   */
+  
   int flag = raws.flag;
   getLatestSensorData(&sensors);
-  // }
-  // sensors.pitch =  sensors.pitch -3.1416 - 0.14;//hack to invert pitch due to orientation of the sensor
-  // while (sensors.pitch > 3.1416) {
-  //   sensors.pitch -= 3.1416*2;
-  // }
-  // while (sensors.pitch < -3.1416) {
-  //   sensors.pitch += 3.1416*2;
-  // }
+  
+  
 
   if ((int)(flag/10) == 0){// flag == 0, 1, 2uses control of what used to be the correct way
     return; //changes outputs using the old format
   } else if ((int)(flag/10) == 1){ //flag == 10, 11, 12
     //set FLAGS for other stuff
-    setPDflags(&init_flags, PDterms,&weights, &raws);
+    setPDflags(&init_flags, PDterms,&weights, &raws, &rollPitchAdjust);
     outputs.m1 = 0;
     outputs.m2 = 0;
     outputs.s1 = 0;
     outputs.s2 = 0;
     outputs.ready = false;
     z_integral = 0;
-
+    
   } else if (flag == 20 or flag == 22){ // low level control
     if (flag == 20){
       outputs.ready = raws.ready;
@@ -219,12 +228,12 @@ void loop() {
       outputs.s1 = raws.data[2];
       outputs.s2 = raws.data[3];
     } else { //nicla control
-      IBus.loop();
+      blimp.IBus.loop();
       outputs.ready = raws.ready;
-      outputs.m1 = (float)IBus.readChannel(0)/1000.0f;
-      outputs.m2 = (float)IBus.readChannel(1)/1000.0f;
-      outputs.s1 = (float)IBus.readChannel(2)/1000.0f;
-      outputs.s2 = (float)IBus.readChannel(3)/1000.0f;
+      outputs.m1 = (float)blimp.IBus.readChannel(0)/1000.0f;
+      outputs.m2 = (float)blimp.IBus.readChannel(1)/1000.0f;
+      outputs.s1 = (float)blimp.IBus.readChannel(2)/1000.0f;
+      outputs.s2 = (float)blimp.IBus.readChannel(3)/1000.0f;
 
     }
 
@@ -240,32 +249,36 @@ void loop() {
       controls.tz = raws.data[5];
       controls.absz = raws.data[6];
     } else { //nicla control
-      IBus.loop();
+      blimp.IBus.loop();
       controls.ready = raws.ready;
-      controls.fx = (float)IBus.readChannel(0)/1000.0f;
-      controls.fy = (float)IBus.readChannel(1)/1000.0f;
-      controls.fz = (float)IBus.readChannel(2)/1000.0f;
-      controls.tx = (float)IBus.readChannel(3)/1000.0f;
-      controls.ty = (float)IBus.readChannel(4)/1000.0f;
-      controls.tz = (float)IBus.readChannel(5)/1000.0f;
-      controls.absz = (float)IBus.readChannel(6)/1000.0f;
-    }
-
+      controls.fx = (float)blimp.IBus.readChannel(0)/1000.0f;
+      controls.fy = (float)blimp.IBus.readChannel(1)/1000.0f;
+      controls.fz = (float)blimp.IBus.readChannel(2)/1000.0f;
+      controls.tx = (float)blimp.IBus.readChannel(3)/1000.0f;
+      controls.ty = (float)blimp.IBus.readChannel(4)/1000.0f;
+      controls.tz = (float)blimp.IBus.readChannel(5)/1000.0f;
+      controls.absz = (float)blimp.IBus.readChannel(6)/1000.0f;
+    } 
+    
     addFeedback(&controls, &sensors); //this function is implemented here for you to customize
     getOutputs(&controls, &sensors, &outputs);
 
   }
-  else if (flag == 98){
+  else if (flag == 98 && lastflag != flag){
+    Serial.print("Set flags: ");
+    Serial.println(flag);
     baro.init();
     getLatestSensorData(&sensors);
     delay(200);
     sensors.groundZ = baro.getEstimatedZ();
   }
-  else if (flag == 97){
+  else if (flag == 97 && lastflag != flag){
+    Serial.print("Set flags: ");
+    Serial.println(flag);
     bno.init();
-
+    
     //getLatestSensorData(&sensors);
-  }
+  } 
   blimp.executeOutputs(&outputs);
   int dt = (int)(micros()-timed);
   while (4000 - dt > 0){
@@ -273,7 +286,20 @@ void loop() {
   }
   timed = micros();
   counter2 += 1;
+  if (counter2%5 == 0){
+    if (transceiverEnabled){
+      blimp.IBus.loop();
 
+      espSendData.flag = 1;
+      espSendData.values[0] = sensors.estimatedZ - sensors.groundZ;
+      espSendData.values[1] = sensors.yaw;
+      espSendData.values[2] = (float)blimp.IBus.readChannel(0)/1000.0f;
+      espSendData.values[3] = (float)blimp.IBus.readChannel(1)/1000.0f;
+      espSendData.values[4] = (float)blimp.IBus.readChannel(2)/1000.0f;
+      espSendData.values[5] = (float)blimp.IBus.readChannel(3)/1000.0f;      
+      blimp.send_esp_feedback(transceiverAddress, &espSendData);
+    }
+  }
   if (counter2 >= 50){
     Serial.print(dt);
     Serial.print(',');
@@ -281,11 +307,11 @@ void loop() {
     Serial.print(',');
     Serial.print(controls.absz);
     Serial.print(',');
-    Serial.print(controls.fz);
+    Serial.print(espSendData.values[2]);
     Serial.print(',');
     Serial.print(raws.data[0]);
     Serial.print(',');
-    Serial.print(controls.tz);
+    Serial.print(espSendData.values[3]);
     Serial.print(',');
     Serial.print(sensors.estimatedZ - sensors.groundZ);
     Serial.print(',');
@@ -296,12 +322,16 @@ void loop() {
     Serial.println(sensors.yaw);
     counter2 = 0;
   }
-
+  lastflag = flag;
 
 
 }
 
-void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *weights, raw_t *raws){
+void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *weights, raw_t *raws, RollPitchAdjustments *rollPitchAdjust ){
+  if (lastflag == raws->flag)
+  {
+    return;
+  }
   Serial.print("Set flags: ");
   Serial.println(raws->flag);
   if (raws->flag == 10){// enables or disables feedback in these terms
@@ -338,8 +368,10 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
     PDterms->kpz = raws->data[4];
     PDterms->kdz = raws->data[5];
     PDterms->lx = raws->data[6];
-    pitchSign = raws->data[7];
-    pitchOffset = raws->data[8];
+    rollPitchAdjust->pitchSign = raws->data[7];
+    rollPitchAdjust->pitchOffset = raws->data[8];
+    rollPitchAdjust->rollSign = raws->data[9];
+    rollPitchAdjust->rollOffset = raws->data[10];
 
   }
   else if (raws->flag == 14){
@@ -357,7 +389,8 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
     z_int_high = raws->data[3];
     servo1offset = raws->data[4];
     servo2offset = raws->data[5];
-
+    rollPitchAdjust->rollPitchSwitch = raws->data[6] == 1.0f;
+    
   }
 
   else if (raws->flag == 16){
@@ -373,14 +406,29 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
     init_flags->control = raws->data[9],
     Serial.println("REINIT!");
     blimp.init(init_flags, &init_sensors, PDterms);
-
+    
+  } else if (raws->flag == 17){
+    if (transceiverEnabled == false){
+      //uint8_t transceiverAddress[6];
+      transceiverEnabled = true;
+      for (int i = 0; i < 6; i++) {
+        // print((uint8_t)raws->data[i]);
+        // print(":");
+        transceiverAddress[i] = (uint8_t)raws->data[i];
+      }
+      if (blimp.attemptToAddPeer(transceiverAddress) != ESP_OK) {
+        Serial.println(" Failed to add peer or peer already exists!");
+    } else {
+        Serial.println(" Peer added successfully!");
+    }
+    }
   }
 
 }
 
 
 void testMotors() {
-
+  
   timed = millis();
   while (millis() - timed < 1000) {
     outputs.ready = true;
@@ -389,7 +437,7 @@ void testMotors() {
     outputs.s1 = 0;
     outputs.s2 = 0;
     blimp.executeOutputs(&outputs);
-
+    
     delay (5);
   }
   timed = millis();
@@ -399,7 +447,7 @@ void testMotors() {
     outputs.s1 = 0;
     outputs.s2 = 0;
     blimp.executeOutputs(&outputs);
-
+    
     delay (5);
   }
   timed = millis();
@@ -409,7 +457,7 @@ void testMotors() {
     outputs.s1 = 0.5;
     outputs.s2 = 0;
     blimp.executeOutputs(&outputs);
-
+    
     delay (5);
   }
   timed = millis();
@@ -419,14 +467,14 @@ void testMotors() {
     outputs.s1 = 0;
     outputs.s2 = 0.5;
     blimp.executeOutputs(&outputs);
-
+    
     delay (5);
   }
   timed = millis();
   while (millis() - timed < 1000) {
     outputs.ready = false;
     blimp.executeOutputs(&outputs);
-
+    
     delay (5);
   }
   return;
@@ -443,9 +491,13 @@ void testMotors() {
 */
 
 void getLatestSensorData(sensors_t *sensors) {
-  bno.updateSensors(sensors, &weights);
-  sensors->estimatedZ = sensors->estimatedZ * weights.zGamma  + baro.getEstimatedZ()* (1 - weights.zGamma);
-  sensors->velocityZ = sensors->velocityZ * weights.vzGamma + baro.getVelocityZ()*(1 - weights.zGamma);
+  
+  bno.updateSensors(sensors, &weights, &rollPitchAdjust);
+  if (baro.updateBarometer())
+  {
+    sensors->estimatedZ = sensors->estimatedZ * weights.zGamma  + baro.getEstimatedZ()* (1 - weights.zGamma);
+    sensors->velocityZ = sensors->velocityZ * weights.vzGamma + baro.getVelocityZ()*(1 - weights.zGamma);
+  }
 }
 
 float fzave = 0;
@@ -467,34 +519,34 @@ void addFeedback(controller_t *controls, sensors_t *sensors) {
     controls->tz *= PDterms->Cyaw;
     controls->absz *= PDterms->Cabsz;
 
-    //z feedback
+    //z feedback 
     if (PDterms->z) {
       if (controls->ready){
         z_integral += (controls->fz + controls->absz - (sensors->estimatedZ-sensors->groundZ)) * integral_dt;
         z_integral = clamp(z_integral, z_int_low,z_int_high);
         //Serial.println(z_integral);
-      }
-      controls->fz = (controls->fz + controls->absz - (sensors->estimatedZ-sensors->groundZ))*PDterms->kpz
+      } 
+      controls->fz = (controls->fz + controls->absz - (sensors->estimatedZ-sensors->groundZ))*PDterms->kpz 
                       - (sensors->velocityZ)*PDterms->kdz + (z_integral) * kiz;
-
+      
       // fzave = fzave * .9 + controls->fz * .1;
       // controls->fz = fzave;
     }
-
+    
     //yaw feedback
-    if (PDterms->yaw) {
-
+    if (PDterms->yaw) { 
+      
       controls->tz = controls->tz + aveyaw * PDterms->kpyaw - sensors->yawrate*PDterms->kdyaw;
-
+      
     }
-
+    
     //roll feedback
-    if (PDterms->roll) {
+    if (PDterms->roll) { 
       controls->tx = controls->tx - sensors->roll* PDterms->kproll - sensors->rollrate * PDterms->kdroll;
     }
 
     //roll and pitch rotation state feedback
-    if (PDterms->rotation) {
+    if (PDterms->rotation) { 
       float cosp = (float) cos(sensors->pitch);
       float sinp = (float) sin(sensors->pitch);
       float cosr = (float) cos(sensors->roll);
@@ -502,6 +554,81 @@ void addFeedback(controller_t *controls, sensors_t *sensors) {
       controls->fx = ifx*cosp + controls->fz*sinp;
       controls->fz = (-1*ifx*sinp + controls->fz* cosp)/cosr;
     }
+}
+
+//creates the output values used for actuation from the control values
+void getOutputs270(controller_t *controls, sensors_t *sensors, actuation_t *out)
+{
+
+  // set up output
+
+  // set output to default if controls not ready
+  if (controls->ready == false)
+  {
+    out->s1 = clamp(PI/2 + servo1offset, 0, 3*PI/2) / (3*PI/2); // cant handle values between PI and 2PI
+    out->s2 = clamp(PI/2 + servo2offset, 0, 3*PI/2) / (3*PI/2);
+
+    out->m1 = 0;
+    out->m2 = 0;
+    out->ready = false;
+    return;
+  }
+
+  out->ready = true;
+  // inputs to the A-Matrix
+  float l = PDterms->lx; //.3
+
+  float fx = clamp(controls->fx, -1, 1);                  // setpoint->bicopter.fx;
+  float fz = clamp(controls->fz, -2, 2);                 // setpoint->bicopter.fz;
+  //float maxRadsYaw = .07; //.1f                                 //.175;
+  //float magxz = max(fz * tan(maxRadsYaw), fx * l * 0.17f); // limits the yaw based on the magnitude of the force
+  float taux = clamp(controls->tx, -l + (float)0.01, l - (float)0.01);
+  float tauz = clamp(controls->tz, -1, 1) ;//* magxz; // limit should be .25 setpoint->bicopter.tauz; //- stateAttitudeRateYaw
+
+  // inverse A-Matrix calculations
+  float term1 = l * l * fx * fx + l * l * fz * fz + taux * taux + tauz * tauz;
+  float term2 = 2 * fz * l * taux - 2 * fx * l * tauz;
+  float term3 = sqrt(term1 + term2);
+  float term4 = sqrt(term1 - term2);
+  float f1 = term3 / (2 * l); // in unknown units
+  float f2 = term4 / (2 * l);
+  float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3) - sensors->pitch; // in radians
+  float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4) - sensors->pitch;
+
+  // checking for full rotations
+  while (t1 < -PI / 4)
+  {
+    t1 = t1 + 2 * PI;
+  }
+  while (t1 > 7 * PI / 4)
+  {
+    t1 = t1 - 2 * PI;
+  }
+  while (t2 < -PI / 4)
+  {
+    t2 = t2 + 2 * PI;
+  }
+  while (t2 > 7 * PI / 4)
+  {
+    t2 = t2 - 2 * PI;
+  }
+
+  // converting values to a more stable form
+  
+  out->m1 = clamp(f1, 0, 1);
+  out->m2 = clamp(f2, 0, 1);
+  if (out->m1 < 0.02f)
+  {
+    t1 = PI/2;
+  }
+  if (out->m2 < 0.02f)
+  {
+    t2 = PI/2;
+  }
+  
+  out->s1 = clamp(t1 + servo1offset, 0, 3*PI/2) / (3*PI/2); // cant handle values between PI and 2PI
+  out->s2 = clamp(t2 + servo2offset, 0, 3*PI/2) / (3*PI/2);
+  return;
 }
 
 
@@ -540,8 +667,12 @@ void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
   float term4 = sqrt(term1 - term2);
   float f1 = term3 / (2 * l); // in unknown units
   float f2 = term4 / (2 * l);
-  float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3) - sensors->pitch; // in radians
-  float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4) - sensors->pitch;
+  float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3); // in radians
+  float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4);
+  if (feedbackPD.pitch){
+    t1 -= sensors->pitch;
+    t2 -= sensors->pitch;
+  }
 
   // checking for full rotations
   while (t1 < -PI / 2)

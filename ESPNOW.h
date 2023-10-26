@@ -29,4 +29,5 @@ public:
   void getControllerRaws(raw_t *raws);
   esp_err_t attemptToAddPeer(uint8_t mac_addr[6]);
   void sendResponse(uint8_t mac_addr[6], ReceivedData *responseData);
+  void getSensorRaws(ReceivedData *sensorData);
 };

@@ -1,6 +1,7 @@
 from joystickHandler import JoystickHandler
 from ESPNOW import ESPNOWControl
 from robotConfig import RobotConfig
+from gui.simpleGUI import SimpleGUI
 import time
 
 #ESPNOW PARAMS
@@ -18,12 +19,12 @@ LIST_OF_MAC_ADDRESS = [
     "DC:54:75:D7:F7:FC", #7 hanqing
     "48:27:E2:E6:E6:44", #8 kim
     "34:85:18:91:24:F0", #9
-    "34:85:18:91:20:a8", #10 Leo
     
     
 ]
 
-MASTER_MAC = "34:85:18:91:C7:80" #address of the transiever
+# MASTER_MAC = "34:85:18:91:C7:80" #address of the transiever
+MASTER_MAC = "C0:49:EF:EB:FE:34"
 
 SLAVE_INDEX = 10 #-1 means broadcast
 
@@ -45,13 +46,16 @@ robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterspinning")
 robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
 robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
 robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)
+mygui = SimpleGUI()
 
 
 y = False
 try:
     while not y:
-
         outputs, y = joyhandler.get_outputs()
+        #outputs = [0]*13
+        feedback  = esp_now.getFeedback(1)
+        mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])
         
         esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
         #flag, feedback  = esp_now.getFeedback()
