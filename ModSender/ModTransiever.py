@@ -7,7 +7,7 @@ import time
 #ESPNOW PARAMS
 ESP_VERBOSE = True
 # PORT = "COM5"
-PORT = "/dev/tty.usbmodem14401"
+PORT = "/dev/tty.usbmodem1432201"
 LIST_OF_MAC_ADDRESS = [
     "34:85:18:91:BC:94",
     "34:85:18:91:BE:34",
@@ -19,14 +19,15 @@ LIST_OF_MAC_ADDRESS = [
     "DC:54:75:D7:F7:FC", #7 hanqing
     "48:27:E2:E6:E6:44", #8 kim
     "34:85:18:91:24:F0", #9
-    
+    "34:85:18:91:20:a8", #10 Leo
+    "48:27:E2:E6:E4:0C", #11 Big Wall
     
 ]
 
 # MASTER_MAC = "34:85:18:91:C7:80" #address of the transiever
 MASTER_MAC = "C0:49:EF:EB:FE:34"
 
-SLAVE_INDEX = 10 #-1 means broadcast
+SLAVE_INDEX = 11 #-1 means broadcast
 
 
 BRODCAST_CHANNEL = 1 # SLAVE_INDEX will override this value if SLAVE_INDEX is not -1
@@ -39,12 +40,12 @@ robConfig = RobotConfig(esp_now, "ModSender/robot_configs.json")
 
 #set configs for all slave indexes that you want to use 
 #bicopter basic contains configs for a robot with no feedback
-# robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
-robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterspinning")
+robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+# robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterspinning")
 #robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 
-robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
-robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
+# robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
+# robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
 robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)
 mygui = SimpleGUI()
 

@@ -15,6 +15,7 @@ void ModBlimp::initDefault()
   -int motor_type: determines if you are using brushless or brushed motors: 0 = brushed, 1 = brushless;
   -int mode: sets which controller to listen to: 0 = UDP, 1 = IBUS, -1 = None;
   -int control: sets which type of controller to use: 0 = bicopter, 1 = spinning(TODO), -1 = None;
+  -int servo: set which type of servo: 0 = 180 degree, 1 = 270 degree,
   */
   init_flags_t init_flags = {
       .verbose = false,
@@ -23,6 +24,7 @@ void ModBlimp::initDefault()
       .calibrate_esc = false,
       .UDP = true,
       .Ibus = true,
+      .servo = false,
       .motor_type = 0,
       .mode = 0,
       .control = 0,
