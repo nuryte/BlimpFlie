@@ -72,7 +72,7 @@ class JoystickHandler:
         self.fz = self.fz + -1* self.left_vertical * dt if self.b_state else 0
 
         if YAW_SENSOR:
-            self.tz += -1 * self.right_horizontal
+            self.tz += -.1 * self.right_horizontal
         else:
             self.tz = -1 * self.right_horizontal
 

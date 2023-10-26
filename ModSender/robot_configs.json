@@ -2,7 +2,7 @@
     "bicopterbasic": {
         "feedbackPD" : { "roll" : 0,
                         "pitch" : 0,
-                        "yaw" : 0,
+                        "yaw" : 1,
                         "x" : 0,
                         "y" : 0,
                         "z" : 0,
@@ -10,7 +10,7 @@
 
                         "Croll" : 1,
                         "Cpitch" : 0, 
-                        "Cyaw" : 0.1,
+                        "Cyaw" : 1,
                         "Cx" : 0.6,
                         "Cy" : 0,
                         "Cz" : 1,
@@ -20,8 +20,8 @@
                         "kdroll" : 0 ,
                         "kppitch" : 0,
                         "kdpitch" : 0,
-                        "kpyaw" : 0.30,
-                        "kdyaw" : -120,
+                        "kpyaw" : 0.1,
+                        "kdyaw" : -0.5,
 
                         "kpx" : 0,
                         "kdx" : 0,
