@@ -1,11 +1,15 @@
 #include "modBlimp.h"
-#include "BNO85.h"
-#include "baro390.h"
+
+// #include "BNO85.h"
+// #include "baro390.h"
+
+#include "BNO55.h"
+#include "baro280.h"
 
 
 ModBlimp blimp;
-BNO85 bno;
-baro390 baro;
+BNO55 bno;
+baro280 baro;
 
 IBusBM IBus; 
 
@@ -26,7 +30,7 @@ init_flags_t init_flags = {
   .Ibus = false,
   .ESPNOW = true,
   .PORT = 1345,
-  .motor_type = 0,
+  .motor_type = 1,
   .mode = 2,
   .control = 0,
 };
@@ -152,6 +156,19 @@ controller_t controls;
 raw_t raws;
 actuation_t outputs;
 
+// Spinning Blimp Variables
+float sf1, sf2, bf1, bf2 = 0;
+float st1, st2, bt1, bt2 = 0;
+float f1, f2, t1, t2 = 0;
+float sigmoi, s_yaw, tau, ss = 0;
+float alpha = 1;
+float lastState = -1; // Initialized to a value that is not 0 or 1 to ensure the initial check works
+unsigned long stateChangeTime = 0; // Time at which controls->ss changes state
+// Time of flight sensor values
+float wall = 0;
+const int ANGLE_INCREMENT = 10;
+const int TOTAL_ANGLES = 360;
+const int ARRAY_SIZE = TOTAL_ANGLES / ANGLE_INCREMENT;
 
 void setup() {
   
@@ -246,6 +263,7 @@ void loop() {
       controls.ty = raws.data[4];
       controls.tz = raws.data[5];
       controls.absz = raws.data[6];
+      ss = raws.data[7]; // for the spinning blimp switch states
     } else { //nicla control
       IBus.loop();
       controls.ready = raws.ready;
@@ -630,82 +648,83 @@ void getOutputs270(controller_t *controls, sensors_t *sensors, actuation_t *out)
 }
 
 
-//creates the output values used for actuation from the control values
-void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
-{
+// //creates the output values used for actuation from the control values
+// void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
+// {
 
-  // set up output
+//   // set up output
 
-  // set output to default if controls not ready
-  if (controls->ready == false)
-  {
-    out->s1 = .5f;
-    out->s2 = .5f;
-    out->m1 = 0;
-    out->m2 = 0;
-    out->ready = false;
-    return;
-  }
+//   // set output to default if controls not ready
+//   if (controls->ready == false)
+//   {
+//     out->s1 = .5f;
+//     out->s2 = .5f;
+//     out->m1 = 0;
+//     out->m2 = 0;
+//     out->ready = false;
+//     return;
+//   }
 
-  out->ready = true;
-  // inputs to the A-Matrix
-  float l = PDterms->lx; //.3
+//   out->ready = true;
+//   // inputs to the A-Matrix
+//   float l = PDterms->lx; //.3
 
-  float fx = clamp(controls->fx, -1, 1);                  // setpoint->bicopter.fx;
-  float fz = clamp(controls->fz, 0.1, 2);                 // setpoint->bicopter.fz;
-  //float maxRadsYaw = .07; //.1f                                 //.175;
-  //float magxz = max(fz * tan(maxRadsYaw), fx * l * 0.17f); // limits the yaw based on the magnitude of the force
-  float taux = clamp(controls->tx, -l + (float)0.01, l - (float)0.01);
-  float tauz = clamp(controls->tz, -1, 1) ;//* magxz; // limit should be .25 setpoint->bicopter.tauz; //- stateAttitudeRateYaw
+//   float fx = clamp(controls->fx, -1, 1);                  // setpoint->bicopter.fx;
+//   float fz = clamp(controls->fz, 0.1, 2);                 // setpoint->bicopter.fz;
+//   //float maxRadsYaw = .07; //.1f                                 //.175;
+//   //float magxz = max(fz * tan(maxRadsYaw), fx * l * 0.17f); // limits the yaw based on the magnitude of the force
+//   float taux = clamp(controls->tx, -l + (float)0.01, l - (float)0.01);
+//   float tauz = clamp(controls->tz, -1, 1) ;//* magxz; // limit should be .25 setpoint->bicopter.tauz; //- stateAttitudeRateYaw
 
-  // inverse A-Matrix calculations
-  float term1 = l * l * fx * fx + l * l * fz * fz + taux * taux + tauz * tauz;
-  float term2 = 2 * fz * l * taux - 2 * fx * l * tauz;
-  float term3 = sqrt(term1 + term2);
-  float term4 = sqrt(term1 - term2);
-  float f1 = term3 / (2 * l); // in unknown units
-  float f2 = term4 / (2 * l);
-  float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3); // in radians
-  float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4);
-  if (feedbackPD.pitch){
-    t1 -= sensors->pitch;
-    t2 -= sensors->pitch;
-  }
+//   // inverse A-Matrix calculations
+//   float term1 = l * l * fx * fx + l * l * fz * fz + taux * taux + tauz * tauz;
+//   float term2 = 2 * fz * l * taux - 2 * fx * l * tauz;
+//   float term3 = sqrt(term1 + term2);
+//   float term4 = sqrt(term1 - term2);
+//   float f1 = term3 / (2 * l); // in unknown units
+//   float f2 = term4 / (2 * l);
+//   float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3); // in radians
+//   float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4);
+//   if (feedbackPD.pitch){
+//     t1 -= sensors->pitch;
+//     t2 -= sensors->pitch;
+//   }
 
-  // checking for full rotations
-  while (t1 < -PI / 2)
-  {
-    t1 = t1 + 2 * PI;
-  }
-  while (t1 > 3 * PI / 2)
-  {
-    t1 = t1 - 2 * PI;
-  }
-  while (t2 < -PI / 2)
-  {
-    t2 = t2 + 2 * PI;
-  }
-  while (t2 > 3 * PI / 2)
-  {
-    t2 = t2 - 2 * PI;
-  }
+//   // checking for full rotations
+//   while (t1 < -PI / 2)
+//   {
+//     t1 = t1 + 2 * PI;
+//   }
+//   while (t1 > 3 * PI / 2)
+//   {
+//     t1 = t1 - 2 * PI;
+//   }
+//   while (t2 < -PI / 2)
+//   {
+//     t2 = t2 + 2 * PI;
+//   }
+//   while (t2 > 3 * PI / 2)
+//   {
+//     t2 = t2 - 2 * PI;
+//   }
 
-  // converting values to a more stable form
+//   // converting values to a more stable form
   
-  out->s1 = clamp(t1 + servo1offset, 0, PI) / (PI); // cant handle values between PI and 2PI
-  out->s2 = clamp(t2 + servo2offset, 0, PI) / (PI);
-  out->m1 = clamp(f1, 0, 1);
-  out->m2 = clamp(f2, 0, 1);
-  if (out->m1 < 0.02f)
-  {
-    out->s1 = 0.5f;
-  }
-  if (out->m2 < 0.02f)
-  {
-    out->s2 = 0.5f;
-  }
-  return;
-}
+//   out->s1 = clamp(t1 + servo1offset, 0, PI) / (PI); // cant handle values between PI and 2PI
+//   out->s2 = clamp(t2 + servo2offset, 0, PI) / (PI);
+//   out->m1 = clamp(f1, 0, 1);
+//   out->m2 = clamp(f2, 0, 1);
+//   if (out->m1 < 0.02f)
+//   {
+//     out->s1 = 0.5f;
+//   }
+//   if (out->m2 < 0.02f)
+//   {
+//     out->s2 = 0.5f;
+//   }
+//   return;
+// }
+
 float clamp(float in, float min, float max){
   if (in< min){
     return min;
@@ -715,7 +734,6 @@ float clamp(float in, float min, float max){
     return in;
   }
 }
-
 
 
 

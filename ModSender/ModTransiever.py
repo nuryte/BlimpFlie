@@ -4,8 +4,9 @@ from robotConfig import RobotConfig
 import time
 
 #ESPNOW PARAMS
-ESP_VERBOSE = False
-PORT = "COM5"
+ESP_VERBOSE = True
+# PORT = "COM5"
+PORT = "/dev/tty.usbmodem14401"
 LIST_OF_MAC_ADDRESS = [
     "34:85:18:91:BC:94",
     "34:85:18:91:BE:34",
@@ -24,7 +25,7 @@ LIST_OF_MAC_ADDRESS = [
 
 MASTER_MAC = "34:85:18:91:C7:80" #address of the transiever
 
-SLAVE_INDEX = 5 #-1 means broadcast
+SLAVE_INDEX = 10 #-1 means broadcast
 
 
 BRODCAST_CHANNEL = 1 # SLAVE_INDEX will override this value if SLAVE_INDEX is not -1
@@ -32,15 +33,17 @@ BRODCAST_CHANNEL = 1 # SLAVE_INDEX will override this value if SLAVE_INDEX is no
 
 joyhandler = JoystickHandler()
 esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
-robConfig = RobotConfig(esp_now, "ModSender\\robot_configs.json")
+robConfig = RobotConfig(esp_now, "ModSender/robot_configs.json")
+# robConfig = RobotConfig(esp_now, "ModSender\\robot_configs.json")
 
 #set configs for all slave indexes that you want to use 
 #bicopter basic contains configs for a robot with no feedback
-robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+# robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterspinning")
 #robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 
-# robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
-# robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
+robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
+robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
 robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)
 
 
@@ -51,9 +54,9 @@ try:
         outputs, y = joyhandler.get_outputs()
         
         esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
-        flag, feedback  = esp_now.getFeedback()
-        print(feedback)
-        esp_now.send(outputs, BRODCAST_CHANNEL, 0)
+        #flag, feedback  = esp_now.getFeedback()
+        #print(feedback)
+        #esp_now.send(outputs, BRODCAST_CHANNEL, 0)
         time.sleep(0.02)
 except KeyboardInterrupt:
     print("Loop terminated by user.")
