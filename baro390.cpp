@@ -43,10 +43,10 @@ bool baro390::updateBarometer(){
             estimatedZ = bme.readAltitude(1013.25);
             dtBaro = micros() - tStart;
             tStart = micros();
-            return true
+            return true;
         }
     }
-    return false
+    return false;
 }
 
 
