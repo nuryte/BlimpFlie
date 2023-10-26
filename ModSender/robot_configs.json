@@ -5,10 +5,10 @@
                         "yaw" : 1,
                         "x" : 0,
                         "y" : 0,
-                        "z" : 1,
+                        "z" : 0,
                         "rotation" : 0,
 
-                        "Croll" : 1,
+                        "Croll" : 0.1,
                         "Cpitch" : 0, 
                         "Cyaw" : 1,
                         "Cx" : 0.6,
@@ -20,14 +20,14 @@
                         "kdroll" : 0 ,
                         "kppitch" : 0,
                         "kdpitch" : 0,
-                        "kpyaw" : 0.02,
+                        "kpyaw" : 0.05,
                         "kdyaw" : -0.1,
 
                         "kpx" : 0,
                         "kdx" : 0,
                         "kpy" : 0,
                         "kdy" : 0,
-                        "kpz" : 0.2,
+                        "kpz" : 0,
                         "kdz" : 0,
 
 

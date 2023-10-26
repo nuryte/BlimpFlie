@@ -61,6 +61,10 @@ void setup() {
     Serial.println("Error initializing ESP-NOW");
     return;
   }
+
+  Serial.print("ESP Board MAC Address:  ");
+  Serial.print(WiFi.macAddress());
+    
   esp_now_register_send_cb(OnDataSent);
   peerInfo.channel = 0;  
   peerInfo.encrypt = false;

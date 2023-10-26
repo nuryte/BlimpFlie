@@ -22,7 +22,7 @@ robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 # robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 
 robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure IMU
-robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
+# robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
 robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)  # Start communication
 
 ###### Communicate until Y button (Exit) is pressed #####
@@ -32,7 +32,7 @@ try:
         outputs, y_pressed = joyhandler.get_outputs()  # get joystick input
         # outputs = [0]*13
         feedback = esp_now.getFeedback(1)  # get sensor data from robot
-        # print(feedback)
+        print(feedback)
 
         mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])  # display sensor data
 

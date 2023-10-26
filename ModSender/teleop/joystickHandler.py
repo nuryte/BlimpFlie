@@ -81,7 +81,7 @@ class JoystickHandler:
         """Get the output controls based on blimp type."""
         self.update_joy_params()
         if self.blimp_type == "bicopter":
-            return self.get_bicopter_controls(), self.y_state, self.a_state
+            return self.get_bicopter_controls(), self.y_state
 
         
 

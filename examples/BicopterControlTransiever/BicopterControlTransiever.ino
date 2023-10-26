@@ -1,11 +1,11 @@
 #include "modBlimp.h"
 #include "BNO85.h"
-#include "baro390.h"
+#include "baro280.h"
 
 
 ModBlimp blimp;
 BNO85 bno;
-baro390 baro;
+baro280 baro;
 
 IBusBM IBus; 
 
