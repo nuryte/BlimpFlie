@@ -27,6 +27,8 @@ if YAW_SENSOR:
 if Z_SENSOR:
     robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
 
+robConfig.startThrustRange(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")  # Motor specifications
+
 robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)  # Start communication
 
 ###### Communicate until Y button (Exit) is pressed #####

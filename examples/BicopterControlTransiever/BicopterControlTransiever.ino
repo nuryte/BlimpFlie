@@ -12,6 +12,12 @@ baro390 baro;
 
 IBusBM IBus; 
 
+
+robot_specs_s robot_specs = {
+    .min_thrust = 1000,
+    .max_thrust = 2000,
+};
+
 /*
 flags to be used in the init 
 -bool verbose: allows some debug print statments
@@ -305,8 +311,17 @@ void loop() {
     bno.init();
     
     //getLatestSensorData(&sensors);
-  } 
-  blimp.executeOutputs(&outputs);
+  }
+   else if (flag == 96 && lastflag != flag){
+    // Extract data from raw message
+    robot_specs.min_thrust = (int) raws.data[0];
+    robot_specs.max_thrust = (int) raws.data[1];
+    Serial.print("Min thrust: ");
+    Serial.println(robot_specs.min_thrust);
+    Serial.print("Max thrust: ");
+    Serial.println(robot_specs.max_thrust);
+  }
+  blimp.executeOutputs(&outputs, &robot_specs);
   int dt = (int)(micros()-timed);
   while (4000 - dt > 0){
     dt = (int)(micros()-timed);
@@ -452,59 +467,6 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
 
 }
 
-
-void testMotors() {
-  
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.ready = true;
-    outputs.m1 = 0.5;
-    outputs.m2 = 0;
-    outputs.s1 = 0;
-    outputs.s2 = 0;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.m1 = 0;
-    outputs.m2 = 0.5;
-    outputs.s1 = 0;
-    outputs.s2 = 0;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.m1 = 0;
-    outputs.m2 = 0;
-    outputs.s1 = 0.5;
-    outputs.s2 = 0;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.m1 = 0;
-    outputs.m2 = 0;
-    outputs.s1 = 0;
-    outputs.s2 = 0.5;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.ready = false;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  return;
-}
 
 
 
