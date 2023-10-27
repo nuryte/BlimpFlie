@@ -11,7 +11,7 @@
                         "Croll" : 1,
                         "Cpitch" : 0, 
                         "Cyaw" : 1,
-                        "Cx" : 0.6,
+                        "Cx" : 0.5,
                         "Cy" : 0,
                         "Cz" : 1,
                         "Cabsz" : 1,
@@ -20,8 +20,8 @@
                         "kdroll" : 0 ,
                         "kppitch" : 0,
                         "kdpitch" : 0,
-                        "kpyaw" : 0.1,
-                        "kdyaw" : -0.5,
+                        "kpyaw" : -0.05,
+                        "kdyaw" : 0.05,
 
                         "kpx" : 0,
                         "kdx" : 0,
@@ -69,7 +69,9 @@
                     "PORT" : 1345,
                     "motor_type" : 0,
                     "mode" : 2,
-                    "control" : 0
+                    "control" : 0,
+                    "min_thrust": 1050,
+                    "max_thrust": 1800
                     }
     },
     "bicopterbasicAGAIN": {
