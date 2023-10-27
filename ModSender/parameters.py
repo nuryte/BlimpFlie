@@ -26,5 +26,10 @@ SLAVE_INDEX = 0 #-1 means broadcast
 BRODCAST_CHANNEL = 1 # SLAVE_INDEX will override this value if SLAVE_INDEX is not -1
 
 YAW_SENSOR = True
-Z_SENSOR = False
+
 GUI_ENABLED = True
+
+
+Z_SENSOR = False
+MIN_Z = 0
+MAX_Z = 50

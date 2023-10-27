@@ -3,7 +3,7 @@ from math import atan2, sqrt, pi
 import pygame
 import time
 
-from ModSender.parameters import YAW_SENSOR
+from ModSender.parameters import YAW_SENSOR, MAX_Z, MIN_Z
 
 
 class JoystickHandler:
@@ -19,6 +19,7 @@ class JoystickHandler:
         self.left_vertical = 0
         self.left_horizontal = 0
         self.right_trigger = 0
+        self.left_trigger = 0
 
         # Internal button values initialized for (a, b, x, y, lb, rb)
         self.button_names = ['a', 'b', 'x', 'y', 'lb', 'rb']
@@ -61,7 +62,7 @@ class JoystickHandler:
             self._update_button_states(i)
         
         # Update axis values with a dead-zone of 0.1
-        axes = [('right_vertical', 3), ('right_horizontal', 2), ('left_horizontal', 0), ('left_vertical', 1), ('right_trigger', 5)]
+        axes = [('right_vertical', 3), ('right_horizontal', 2), ('left_horizontal', 0), ('left_vertical', 1), ('left_trigger', 4), ('right_trigger', 5)]
         for axis, idx in axes:
             val = self.joystick.get_axis(idx)
             setattr(self, axis, val if abs(val) > 0.1 else 0)
@@ -72,8 +73,10 @@ class JoystickHandler:
         self.time_start = time.time()
 
         # self.fx = -1 * self.right_vertical
-        self.fx = -1 * (self.right_trigger + 1)/2
+        self.fx = (self.right_trigger + 1)/2 - (self.left_trigger + 1)/2
         self.fz = self.fz + -1* self.left_vertical * dt if self.b_state else 0
+        # Z in range
+        self.fz = min(max(self.fz, MIN_Z), MAX_Z)
 
         if YAW_SENSOR:
             # self.tz += -.1 * self.right_horizontal
