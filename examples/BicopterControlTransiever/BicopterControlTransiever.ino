@@ -298,12 +298,19 @@ void loop() {
 
   }
   else if (flag == 98 && lastflag != flag){
-    Serial.print("Set flags: ");
+    Serial.print(“Set flags: “);
     Serial.println(flag);
     baro.init();
     getLatestSensorData(&sensors);
-    delay(200);
+    delay(30);
     sensors.groundZ = baro.getEstimatedZ();
+    delay(30);
+    getLatestSensorData(&sensors);
+    while (abs(sensors.groundZ - baro.getEstimatedZ()) > .4 || sensors.groundZ == baro.getEstimatedZ()){
+      sensors.groundZ = baro.getEstimatedZ();
+      delay(100);
+      getLatestSensorData(&sensors);
+    }
   }
   else if (flag == 97 && lastflag != flag){
     Serial.print("Set flags: ");

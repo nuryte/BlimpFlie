@@ -9,8 +9,7 @@ import time
 mygui = SensorGUI(GUI_ENABLED)
 mygui.sleep(0.02)
 
-# Joystick
-joyhandler = JoystickHandler()
+
 # Communication
 esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
 
@@ -18,8 +17,13 @@ esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
 robConfig = RobotConfig(esp_now, ROBOT_CONFIG_FILE)
 # Set configs for all slave indexes that you want to use
 # Bicopter basic contains configs for a robot with no feedback
-robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, ROBOT_JASON)
 # robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+
+YAW_SENSOR, Z_SENSOR = robConfig.getFeedbackParams(ROBOT_JASON)
+
+# Joystick
+joyhandler = JoystickHandler(yaw_sensor=YAW_SENSOR)
 
 if YAW_SENSOR:
     robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure IMU

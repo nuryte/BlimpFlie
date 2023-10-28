@@ -1,6 +1,7 @@
 
 
 ROBOT_CONFIG_FILE = "./robot_configs.json"
+ROBOT_JASON = "bicopterbasic"
 
 #ESPNOW PARAMS
 # MASTER_MAC = "34:85:18:91:C7:80" #address of the transceiver
@@ -25,11 +26,10 @@ MASTER_MAC = "C0:49:EF:EB:FE:34"
 SLAVE_INDEX = 0 #-1 means broadcast
 BRODCAST_CHANNEL = 1 # SLAVE_INDEX will override this value if SLAVE_INDEX is not -1
 
-YAW_SENSOR = True
+
 
 GUI_ENABLED = True
 
 
-Z_SENSOR = False
 MIN_Z = 0
 MAX_Z = 50

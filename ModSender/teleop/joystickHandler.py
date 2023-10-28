@@ -3,11 +3,12 @@ from math import atan2, sqrt, pi
 import pygame
 import time
 
-from ModSender.parameters import YAW_SENSOR, MAX_Z, MIN_Z
+from ModSender.parameters import MAX_Z, MIN_Z
 
 
 class JoystickHandler:
-    def __init__(self, blimp_type="bicopter", joy_index=0):
+    def __init__(self, blimp_type="bicopter", joy_index=0, yaw_sensor=False):
+        self.yaw_sensor_enabled = yaw_sensor
         self.blimp_type = blimp_type
         self.joy_index = joy_index
         
@@ -78,7 +79,7 @@ class JoystickHandler:
         # Z in range
         self.fz = min(max(self.fz, MIN_Z), MAX_Z)
 
-        if YAW_SENSOR:
+        if self.yaw_sensor_enabled:
             # self.tz += -.1 * self.right_horizontal
 
             des_yaw = atan2(-self.right_vertical, self.right_horizontal)

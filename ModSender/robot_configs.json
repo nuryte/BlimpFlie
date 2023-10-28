@@ -5,13 +5,13 @@
                         "yaw" : 1,
                         "x" : 0,
                         "y" : 0,
-                        "z" : 0,
+                        "z" : 1,
                         "rotation" : 0,
 
                         "Croll" : 1,
                         "Cpitch" : 0, 
                         "Cyaw" : 1,
-                        "Cx" : 0.5,
+                        "Cx" : 1,
                         "Cy" : 0,
                         "Cz" : 1,
                         "Cabsz" : 1,
@@ -27,7 +27,7 @@
                         "kdx" : 0,
                         "kpy" : 0,
                         "kdy" : 0,
-                        "kpz" : 0,
+                        "kpz" : 0.1,
                         "kdz" : 0,
                         "kiz" : 0,
 
@@ -42,8 +42,8 @@
                         "rollOffset" : 0,
                         "rollPitchSwitch" : 0,
 
-                        "servo1offset" : 0,
-                        "servo2offset" : 0.0
+                        "servo1offset" : 1,
+                        "servo2offset" : 0.6
                         },
         "weights": { "eulerGamma" : 0,
                     "rollRateGamma" : 0.7,

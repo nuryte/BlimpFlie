@@ -169,3 +169,15 @@ class RobotConfig:
             time.sleep(1)
             return False
         time.sleep(1)
+
+
+    def getFeedbackParams(self,CONFIG_INDEX):
+        # Fetch the feedbackPD and weights for the given CONFIG_INDEX
+        config = self.get_config(CONFIG_INDEX)
+        feedbackPD = config['feedbackPD']
+
+        yaw_enabled = feedbackPD["yaw"]
+        z_endabled = feedbackPD["z"]
+
+        return yaw_enabled,z_endabled
+
