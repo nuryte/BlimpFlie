@@ -1,11 +1,11 @@
 #include "modBlimp.h"
 #include "BNO85.h"
-#include "baro280.h"
+#include "baro390.h"
 
 
 ModBlimp blimp;
 BNO85 bno;
-baro280 baro;
+baro390 baro;
 
 IBusBM IBus; 
 
@@ -145,6 +145,7 @@ float servo2offset = 0;
 bool transceiverEnabled = false;
 uint8_t transceiverAddress[6];
 ReceivedData espSendData;
+ReceivedData sensorData;
 
 feedback_t * PDterms = &feedbackPD;
 //storage variables
@@ -204,9 +205,9 @@ void loop() {
   
   int flag = raws.flag;
   getLatestSensorData(&sensors);
+  blimp.getSensorRaws(&sensorData);
   
   
-
   if ((int)(flag/10) == 0){// flag == 0, 1, 2uses control of what used to be the correct way
     return; //changes outputs using the old format
   } else if ((int)(flag/10) == 1){ //flag == 10, 11, 12
@@ -293,7 +294,9 @@ void loop() {
       espSendData.values[2] = sensors.roll;
       espSendData.values[3] = sensors.yaw;
       espSendData.values[4] = sensors.pitchrate;
-      espSendData.values[5] = sensors.rollrate;
+      // espSendData.values[5] = sensors.rollrate;
+      espSendData.values[5] = sensorData.values[0];
+      Serial.print(sensorData.values[0]);
 
       blimp.send_esp_feedback(transceiverAddress, &espSendData);
     }
@@ -318,6 +321,8 @@ void loop() {
     Serial.print(sensors.roll);
     Serial.print(',');
     Serial.println(sensors.yaw);
+    Serial.print(',');
+    Serial.println(sensorData.values[0]);
     counter2 = 0;
   }
   lastflag = flag;

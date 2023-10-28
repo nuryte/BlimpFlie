@@ -32,7 +32,7 @@ class ESPNOWControl:
         @return      {bool} True if the connection is successful, False otherwise
         """
         try:
-            self.serial = serial.Serial(serial_port, 115200, timeout=0.1)
+            self.serial = serial.Serial(serial_port, 115200, timeout=1)
             print(f"Connected to port {serial_port}")
             while self.serial.in_waiting:  # Clear the buffer
                 self.serial.readline().decode(errors="ignore").strip()

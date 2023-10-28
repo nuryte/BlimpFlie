@@ -20,10 +20,11 @@ robConfig = RobotConfig(esp_now, ROBOT_CONFIG_FILE)
 # Bicopter basic contains configs for a robot with no feedback
 robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 # robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)  # Start communication
 
 robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure IMU
-# robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
-robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)  # Start communication
+robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
+
 
 ###### Communicate until Y button (Exit) is pressed #####
 y_pressed = False

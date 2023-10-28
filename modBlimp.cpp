@@ -150,8 +150,8 @@ void ModBlimp::init(init_flags_t *init_flagsIn, init_sensors_t *init_sensorsIn, 
   if (init_flags->control == 0) {
   servo1.setPeriodHertz(50); // Standard 50hz servo
   servo2.setPeriodHertz(50); // Standard 50hz servo
-  servo1.attach(SERVO1, 550, 2400);
-  servo2.attach(SERVO2, 550, 2400);
+  servo1.attach(SERVO1, 800, 2200);
+  servo2.attach(SERVO2, 800, 2200);
   pinMode(THRUST1, OUTPUT);
   pinMode(THRUST2, OUTPUT);
   if (init_flags->motor_type == 0)

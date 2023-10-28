@@ -2,35 +2,29 @@ from parameters import *
 from teleop.joystickHandler import JoystickHandler
 from comm.ESPNOW import ESPNOWControl
 from robot.robotConfig import RobotConfig
+from gui.visualizer import SensorGUI
 import time
 import numpy as np
 
-#ESPNOW PARAMS
+# User interface
+mygui = SensorGUI()
+mygui.sleep(0.02)
 
+# Joystick
 joyhandler = JoystickHandler()
+# Communication
 esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
-robConfig = RobotConfig(esp_now, "robot_configs.json")
 
-#set configs for all slave indexes that you want to use
-#bicopter basic contains configs for a robot with no feedback
+# Load robot configuration
+robConfig = RobotConfig(esp_now, ROBOT_CONFIG_FILE)
+# Set configs for all slave indexes that you want to use
+# Bicopter basic contains configs for a robot with no feedback
 robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
-#robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+# robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)  # Start communication
 
-# robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
-# robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
-# robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)
-
-
-
-######################################################
-
-# MASTER_MAC = "34:85:18:8D:86:70", # 10 Sensor Diego
-# SLAVE_INDEX = 10 #-1 means broadcast
-
-# sensor_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
-# robConfig = RobotConfig(sensor_now, "robot_configs.json")
-# robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
-# robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)
+robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure IMU
+robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
 
 angle = 0
 angle_r = 0
@@ -40,21 +34,24 @@ y = False
 try:
     while not y:
 
-        outputs, y, a = joyhandler.get_outputs()
+        outputs, y= joyhandler.get_outputs()
+        a = joyhandler.a_state
 
-        flag, feedback = esp_now.getFeedback()
+        feedback = esp_now.getFeedback(1)
 
         if a:
             # print(outputs)
             outputs[1] = 0.2
-            if feedback[0] < 400:
+            if feedback[5] < 400:
                 flag = True
                 time_elapse = time.time()
                 angle_r = np.random.uniform(0, 2 * np.pi)
                 joyhandler.tz += angle_r
                 while (time.time() - time_elapse) < 3:
-                    outputs, y, a = joyhandler.get_outputs()
-                    time.sleep(0.08)
+                    outputs, y = joyhandler.get_outputs()
+                    a = joyhandler.a_state
+                    mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])  # display sensor data
+                    mygui.sleep(0.02)
                     esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
                     print(feedback)
                     print(outputs)
@@ -89,10 +86,12 @@ try:
         esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
         print(feedback)
         print(outputs)
+
+        mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])  # display sensor data
         # line = esp_now.read_from_serial_port()
         # print(line)
         # esp_now.send(outputs, BRODCAST_CHANNEL, 0)
-        time.sleep(0.08)
+        mygui.sleep(0.02)
 except KeyboardInterrupt:
     print("Loop terminated by user.")
 esp_now.send([0] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
