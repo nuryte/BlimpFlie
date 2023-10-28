@@ -154,3 +154,30 @@ class RobotConfig:
             time.sleep(1)
             return False
         time.sleep(1)
+
+    def startThrustRange(self,BRODCAST_CHANNEL, SLAVE_INDEX, CONFIG_INDEX):
+        time.sleep(0.1)
+        # Fetch the feedbackPD and weights for the given CONFIG_INDEX
+        config = self.get_config(CONFIG_INDEX)
+
+        initflags = config['initflags']
+
+
+        if not self._send_data([96, 0, initflags["min_thrust"],
+             initflags["max_thrust"]], BRODCAST_CHANNEL, SLAVE_INDEX):
+
+            time.sleep(1)
+            return False
+        time.sleep(1)
+
+
+    def getFeedbackParams(self,CONFIG_INDEX):
+        # Fetch the feedbackPD and weights for the given CONFIG_INDEX
+        config = self.get_config(CONFIG_INDEX)
+        feedbackPD = config['feedbackPD']
+
+        yaw_enabled = feedbackPD["yaw"]
+        z_endabled = feedbackPD["z"]
+
+        return yaw_enabled,z_endabled
+

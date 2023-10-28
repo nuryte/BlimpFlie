@@ -1,7 +1,10 @@
 #include "modBlimp.h"
+
 #include "BNO85.h"
 #include "baro390.h"
 
+// #include "BNO55.h"
+// #include "baro280.h"
 
 ModBlimp blimp;
 BNO85 bno;
@@ -9,11 +12,18 @@ baro390 baro;
 
 IBusBM IBus; 
 
+
+robot_specs_s robot_specs = {
+    .min_thrust = 1000,
+    .max_thrust = 2000,
+};
+
 /*
 flags to be used in the init 
 -bool verbose: allows some debug print statments
 -bool sensors: enables or disables the sensorsuite package: if false all values will be 0, and sensorReady =false in the sensor 
 -bool UDP: starts up the UDP connection such that other UDP functions will be enabled
+-bool servo: switching between 180 and 270 degree: false will be 180 degree and true will be 270
 -int motor_type: determines if you are using brushless or brushed motors: 0 = brushless, 1 = brushed;
 -int mode: sets which controller to listen to: 0 = UDP, 1 = IBUS,2 = espnow, -1 = None;
 -int control: sets which type of controller to use: 0 = bicopter, 1 = spinning(TODO),2 = s-blimp, -1 = None;
@@ -21,11 +31,12 @@ flags to be used in the init
 init_flags_t init_flags = {
   .verbose = false,
   .sensors = false,
-  .escarm = false,
+  .escarm = true,
   .calibrate_esc = false,
   .UDP = false,
   .Ibus = false,
   .ESPNOW = true,
+  .servo = false,
   .PORT = 1345,
   .motor_type = 0,
   .mode = 2,
@@ -154,6 +165,19 @@ controller_t controls;
 raw_t raws;
 actuation_t outputs;
 
+// Spinning Blimp Variables
+float sf1, sf2, bf1, bf2 = 0;
+float st1, st2, bt1, bt2 = 0;
+float f1, f2, t1, t2 = 0;
+float sigmoi, s_yaw, tau, ss = 0;
+float alpha = 1;
+float lastState = -1; // Initialized to a value that is not 0 or 1 to ensure the initial check works
+unsigned long stateChangeTime = 0; // Time at which controls->ss changes state
+// Time of flight sensor values
+float wall = 0;
+const int ANGLE_INCREMENT = 10;
+const int TOTAL_ANGLES = 360;
+const int ARRAY_SIZE = TOTAL_ANGLES / ANGLE_INCREMENT;
 
 void setup() {
   
@@ -207,8 +231,9 @@ void loop() {
   getLatestSensorData(&sensors);
   blimp.getSensorRaws(&sensorData);
   
-  
-  if ((int)(flag/10) == 0){// flag == 0, 1, 2uses control of what used to be the correct way
+
+  if ((int)(flag/10) == 0){// flag == 0, 1, 2 uses control of what used to be the correct way
+    zero(init_flags.servo, &outputs); // call zeroing function for servo
     return; //changes outputs using the old format
   } else if ((int)(flag/10) == 1){ //flag == 10, 11, 12
     //set FLAGS for other stuff
@@ -248,6 +273,7 @@ void loop() {
       controls.ty = raws.data[4];
       controls.tz = raws.data[5];
       controls.absz = raws.data[6];
+      ss = raws.data[7]; // for the spinning blimp switch states
     } else { //nicla control
       IBus.loop();
       controls.ready = raws.ready;
@@ -261,16 +287,31 @@ void loop() {
     } 
     
     addFeedback(&controls, &sensors); //this function is implemented here for you to customize
-    getOutputs(&controls, &sensors, &outputs);
+
+    // Init flags to select which getOutput function is selected
+    if (init_flags.servo == 0){
+      // 180 degree servo getOutputs
+      getOutputs(&controls, &sensors, &outputs);
+    } else {
+      // 270 degree servo getOutputs
+      getOutputs270(&controls, &sensors, &outputs);
+    }
 
   }
   else if (flag == 98 && lastflag != flag){
-    Serial.print("Set flags: ");
+    Serial.print(“Set flags: “);
     Serial.println(flag);
     baro.init();
     getLatestSensorData(&sensors);
-    delay(200);
+    delay(30);
     sensors.groundZ = baro.getEstimatedZ();
+    delay(30);
+    getLatestSensorData(&sensors);
+    while (abs(sensors.groundZ - baro.getEstimatedZ()) > .4 || sensors.groundZ == baro.getEstimatedZ()){
+      sensors.groundZ = baro.getEstimatedZ();
+      delay(100);
+      getLatestSensorData(&sensors);
+    }
   }
   else if (flag == 97 && lastflag != flag){
     Serial.print("Set flags: ");
@@ -278,8 +319,17 @@ void loop() {
     bno.init();
     
     //getLatestSensorData(&sensors);
-  } 
-  blimp.executeOutputs(&outputs);
+  }
+   else if (flag == 96 && lastflag != flag){
+    // Extract data from raw message
+    robot_specs.min_thrust = (int) raws.data[0];
+    robot_specs.max_thrust = (int) raws.data[1];
+    Serial.print("Min thrust: ");
+    Serial.println(robot_specs.min_thrust);
+    Serial.print("Max thrust: ");
+    Serial.println(robot_specs.max_thrust);
+  }
+  blimp.executeOutputs(&outputs, &robot_specs);
   int dt = (int)(micros()-timed);
   while (4000 - dt > 0){
     dt = (int)(micros()-timed);
@@ -430,59 +480,6 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
 }
 
 
-void testMotors() {
-  
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.ready = true;
-    outputs.m1 = 0.5;
-    outputs.m2 = 0;
-    outputs.s1 = 0;
-    outputs.s2 = 0;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.m1 = 0;
-    outputs.m2 = 0.5;
-    outputs.s1 = 0;
-    outputs.s2 = 0;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.m1 = 0;
-    outputs.m2 = 0;
-    outputs.s1 = 0.5;
-    outputs.s2 = 0;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.m1 = 0;
-    outputs.m2 = 0;
-    outputs.s1 = 0;
-    outputs.s2 = 0.5;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.ready = false;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  return;
-}
-
 
 
 /*
@@ -567,7 +564,6 @@ void getOutputs270(controller_t *controls, sensors_t *sensors, actuation_t *out)
 {
 
   // set up output
-
   // set output to default if controls not ready
   if (controls->ready == false)
   {
@@ -600,6 +596,9 @@ void getOutputs270(controller_t *controls, sensors_t *sensors, actuation_t *out)
   float f2 = term4 / (2 * l);
   float t1 = atan2((fz * l - taux) / term3, (fx * l + tauz) / term3) - sensors->pitch; // in radians
   float t2 = atan2((fz * l + taux) / term4, (fx * l - tauz) / term4) - sensors->pitch;
+
+  t1 = -1 * (t1 - PI);
+  t2 = -1 * (t2 - PI);
 
   // checking for full rotations
   while (t1 < -PI / 4)
@@ -641,7 +640,6 @@ void getOutputs270(controller_t *controls, sensors_t *sensors, actuation_t *out)
 //creates the output values used for actuation from the control values
 void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
 {
-
   // set up output
 
   // set output to default if controls not ready
@@ -714,6 +712,7 @@ void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
   }
   return;
 }
+
 float clamp(float in, float min, float max){
   if (in< min){
     return min;
@@ -724,6 +723,22 @@ float clamp(float in, float min, float max){
   }
 }
 
-
-
+// Function for initialising the servos whether they're 180 or 270 degree variants
+void zero(bool servo, actuation_t *out){
+  if (servo == 0){
+  // 180 servo
+  out->s1 = .5f;
+  out->s2 = .5f;
+  out->m1 = 0;
+  out->m2 = 0;
+  out->ready = false;
+  } else {
+  // 270 servo
+  out->s1 = 0.33f;
+  out->s2 = 0.33f;
+  out->m1 = 0;
+  out->m2 = 0;
+  out->ready = false;
+  }
+}
 

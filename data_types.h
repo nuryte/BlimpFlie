@@ -9,8 +9,14 @@ typedef struct init_sensors_s {
     float eulerGamma, rateGamma, zGamma;
 } init_sensors_t;
 
+
+typedef struct robot_specs_s {
+    int min_thrust, max_thrust;
+} robot_specs_s;
+
+
 typedef struct init_flags_s {
-    bool verbose, sensors, escarm, calibrate_esc, UDP, Ibus, ESPNOW;
+    bool verbose, sensors, escarm, calibrate_esc, UDP, Ibus, ESPNOW, servo;
     int PORT, motor_type, mode, control;
 } init_flags_t;
 

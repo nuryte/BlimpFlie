@@ -6,11 +6,10 @@ from gui.visualizer import SensorGUI
 import time
 
 # User interface
-mygui = SensorGUI()
+mygui = SensorGUI(GUI_ENABLED)
 mygui.sleep(0.02)
 
-# Joystick
-joyhandler = JoystickHandler()
+
 # Communication
 esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
 
@@ -18,13 +17,23 @@ esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
 robConfig = RobotConfig(esp_now, ROBOT_CONFIG_FILE)
 # Set configs for all slave indexes that you want to use
 # Bicopter basic contains configs for a robot with no feedback
-robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, ROBOT_JASON)
 # robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+
+YAW_SENSOR, Z_SENSOR = robConfig.getFeedbackParams(ROBOT_JASON)
+
+# Joystick
+joyhandler = JoystickHandler(yaw_sensor=YAW_SENSOR)
+
+if YAW_SENSOR:
+    robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure IMU
+
+if Z_SENSOR:
+    robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
+
+robConfig.startThrustRange(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")  # Motor specifications
+
 robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)  # Start communication
-
-robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure IMU
-robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
-
 
 ###### Communicate until Y button (Exit) is pressed #####
 y_pressed = False

@@ -1,8 +1,14 @@
+from math import atan2, sqrt, pi
+
 import pygame
 import time
 
+from ModSender.parameters import MAX_Z, MIN_Z
+
+
 class JoystickHandler:
-    def __init__(self, blimp_type="bicopter", joy_index=0):
+    def __init__(self, blimp_type="bicopter", joy_index=0, yaw_sensor=False):
+        self.yaw_sensor_enabled = yaw_sensor
         self.blimp_type = blimp_type
         self.joy_index = joy_index
         
@@ -13,6 +19,8 @@ class JoystickHandler:
         self.right_horizontal = 0
         self.left_vertical = 0
         self.left_horizontal = 0
+        self.right_trigger = 0
+        self.left_trigger = 0
 
         # Internal button values initialized for (a, b, x, y, lb, rb)
         self.button_names = ['a', 'b', 'x', 'y', 'lb', 'rb']
@@ -55,7 +63,7 @@ class JoystickHandler:
             self._update_button_states(i)
         
         # Update axis values with a dead-zone of 0.1
-        axes = [('right_vertical', 3), ('right_horizontal', 2), ('left_horizontal', 0), ('left_vertical', 1)]
+        axes = [('right_vertical', 3), ('right_horizontal', 2), ('left_horizontal', 0), ('left_vertical', 1), ('left_trigger', 4), ('right_trigger', 5)]
         for axis, idx in axes:
             val = self.joystick.get_axis(idx)
             setattr(self, axis, val if abs(val) > 0.1 else 0)
@@ -65,11 +73,22 @@ class JoystickHandler:
         dt = time.time() - self.time_start
         self.time_start = time.time()
 
-        self.fx = -1* self.right_vertical
+        # self.fx = -1 * self.right_vertical
+        self.fx = (self.right_trigger + 1)/2 - (self.left_trigger + 1)/2
         self.fz = self.fz + -1* self.left_vertical * dt if self.b_state else 0
-        self.tz = self.tz - 1* self.right_horizontal*dt
+        # Z in range
+        self.fz = min(max(self.fz, MIN_Z), MAX_Z)
 
+        if self.yaw_sensor_enabled:
+            # self.tz += -.1 * self.right_horizontal
 
+            des_yaw = atan2(-self.right_vertical, self.right_horizontal)
+            magnitude = sqrt(self.right_vertical**2 + self.right_horizontal**2)
+
+            if magnitude > 0.5:
+                self.tz = des_yaw
+        else:
+            self.tz = -1 * self.right_horizontal
 
         return [int(self.b_state), self.fx, self.fy, self.fz, self.tx, self.ty, self.tz, 0, 0, 0, 0, 0, 0]
 

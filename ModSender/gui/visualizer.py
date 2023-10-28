@@ -15,7 +15,12 @@ import numpy as np
 
 
 class SensorGUI:
-    def __init__(self):
+    def __init__(self, enable_gui=True):
+        self.enable_gui = enable_gui
+
+        if not enable_gui:
+            return
+
         # Plotting initialization
         plt.ion()
 
@@ -61,10 +66,8 @@ class SensorGUI:
             1.2, -1.1, "", fontsize=12, color="white"
         )
 
-        hight_label = self.ax.text(1.4, -1.2, "Height", fontsize=12, color="white")
+        height_label = self.ax.text(1.4, -1.2, "Height", fontsize=12, color="white")
         yaw_label = self.ax.text(-0.1, -1.2, "Yaw", fontsize=12, color="white")
-
-        # plt.show()
 
     def _angle_to_coordinates(self, radians: float, radius: float = 1.0) -> tuple:
         """
@@ -90,6 +93,9 @@ class SensorGUI:
         @param       {float} des_height: Desired value of height from the controller
         @return      {*} None
         """
+        if not self.enable_gui:
+            return
+
         cur_x, cur_y = self._angle_to_coordinates(cur_yaw)
         des_x, des_y = self._angle_to_coordinates(des_yaw)
 
@@ -153,11 +159,14 @@ class SensorGUI:
         Wait using plt
         :param delay: time to wait
         """
-        plt.pause(0.05)
+        if self.enable_gui:
+            plt.pause(delay)
+        else:
+            time.sleep(delay)
 
 
 if __name__ == "__main__":
-    mygui = SensorGUI()
+    mygui = SensorGUI(True)
 
     # Test plotting with increasing numbers
     for i in range(100):
