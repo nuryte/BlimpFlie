@@ -269,8 +269,25 @@ void loop() {
     Serial.println(flag);
     baro.init();
     getLatestSensorData(&sensors);
-    delay(200);
+    delay(30);
     sensors.groundZ = baro.getEstimatedZ();
+    delay(30);
+    getLatestSensorData(&sensors);
+    int tempcount = 0;
+    while (abs(sensors.groundZ - baro.getEstimatedZ()) > .4 || sensors.groundZ == baro.getEstimatedZ()){
+      Serial.print("Ground Cal...");
+      Serial.println(sensors.groundZ - baro.getEstimatedZ());
+      if (tempcount >10){
+        break;
+      }
+      tempcount += 1;
+      sensors.groundZ = baro.getEstimatedZ();
+      delay(100);
+
+      getLatestSensorData(&sensors);
+    }
+    Serial.print("Ground Calibrated to: ");
+    Serial.println(sensors.groundZ);
   }
   else if (flag == 97 && lastflag != flag){
     Serial.print("Set flags: ");
@@ -299,27 +316,36 @@ void loop() {
       espSendData.values[5] = (float)blimp.IBus.readChannel(3)/1000.0f;      
       blimp.send_esp_feedback(transceiverAddress, &espSendData);
     }
+    
+    if (transceiverEnabled){
+      blimp.IBus.loop();
+
+      espSendData.flag = 2;
+      espSendData.values[0] = outputs.m1;
+      espSendData.values[1] = outputs.m2;
+      espSendData.values[2] = outputs.s1;
+      espSendData.values[3] = outputs.s2;
+      espSendData.values[4] = outputs.m1;
+      espSendData.values[5] = outputs.m2;      
+      blimp.send_esp_feedback(transceiverAddress, &espSendData);
+    }
   }
   if (counter2 >= 50){
     Serial.print(dt);
     Serial.print(',');
     Serial.print((bool)controls.ready);
     Serial.print(',');
-    Serial.print(controls.absz);
+    Serial.print(sensors.estimatedZ - sensors.groundZ);
+    Serial.print(',');
+    Serial.print(sensors.yaw);
     Serial.print(',');
     Serial.print(espSendData.values[2]);
     Serial.print(',');
-    Serial.print(raws.data[0]);
-    Serial.print(',');
     Serial.print(espSendData.values[3]);
     Serial.print(',');
-    Serial.print(sensors.estimatedZ - sensors.groundZ);
+    Serial.print(espSendData.values[4]);
     Serial.print(',');
-    Serial.print(sensors.pitch);
-    Serial.print(',');
-    Serial.print(sensors.roll);
-    Serial.print(',');
-    Serial.println(sensors.yaw);
+    Serial.println(espSendData.values[5]);
     counter2 = 0;
   }
   lastflag = flag;
@@ -427,59 +453,6 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
 }
 
 
-void testMotors() {
-  
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.ready = true;
-    outputs.m1 = 0.5;
-    outputs.m2 = 0;
-    outputs.s1 = 0;
-    outputs.s2 = 0;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.m1 = 0;
-    outputs.m2 = 0.5;
-    outputs.s1 = 0;
-    outputs.s2 = 0;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.m1 = 0;
-    outputs.m2 = 0;
-    outputs.s1 = 0.5;
-    outputs.s2 = 0;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.m1 = 0;
-    outputs.m2 = 0;
-    outputs.s1 = 0;
-    outputs.s2 = 0.5;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  timed = millis();
-  while (millis() - timed < 1000) {
-    outputs.ready = false;
-    blimp.executeOutputs(&outputs);
-    
-    delay (5);
-  }
-  return;
-}
-
 
 
 /*
@@ -535,8 +508,20 @@ void addFeedback(controller_t *controls, sensors_t *sensors) {
     
     //yaw feedback
     if (PDterms->yaw) { 
+
+      // Computing error between angles
+      float e_yaw = controls->tz - sensors->yaw;
+      e_yaw = atan2(sin(e_yaw), cos(e_yaw));
+      // while (e_yaw > PI){
+      //   e_yaw -= PI*2;
+      // }
+      // while (e_yaw  < -PI){
+      //   e_yaw += PI*2;
+      // }
+      e_yaw = clamp(e_yaw, -PI/3, PI/3);
       
-      controls->tz = controls->tz + aveyaw * PDterms->kpyaw - sensors->yawrate*PDterms->kdyaw;
+      // PD for yaw control
+      controls->tz = e_yaw * PDterms->kpyaw - sensors->yawrate*PDterms->kdyaw;
       
     }
     
@@ -654,7 +639,7 @@ void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
   float l = PDterms->lx; //.3
 
   float fx = clamp(controls->fx, -1, 1);                  // setpoint->bicopter.fx;
-  float fz = clamp(controls->fz, 0.1, 2);                 // setpoint->bicopter.fz;
+  float fz = clamp(controls->fz, 0.001, 2);                 // setpoint->bicopter.fz;
   //float maxRadsYaw = .07; //.1f                                 //.175;
   //float magxz = max(fz * tan(maxRadsYaw), fx * l * 0.17f); // limits the yaw based on the magnitude of the force
   float taux = clamp(controls->tx, -l + (float)0.01, l - (float)0.01);
@@ -694,8 +679,8 @@ void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
 
   // converting values to a more stable form
   
-  out->s1 = clamp(t1 + servo1offset, 0, PI) / (PI); // cant handle values between PI and 2PI
-  out->s2 = clamp(t2 + servo2offset, 0, PI) / (PI);
+  out->s1 = clamp((t1 + servo1offset)/PI, 0.05, .95) ; // cant handle values between PI and 2PI
+  out->s2 = clamp((t2 + servo2offset)/PI, 0.05, .95) ;
   out->m1 = clamp(f1, 0, 1);
   out->m2 = clamp(f2, 0, 1);
   if (out->m1 < 0.02f)

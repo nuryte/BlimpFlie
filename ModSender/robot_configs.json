@@ -2,15 +2,15 @@
     "bicopterbasic": {
         "feedbackPD" : { "roll" : 0,
                         "pitch" : 0,
-                        "yaw" : 0,
+                        "yaw" : 1,
                         "x" : 0,
                         "y" : 0,
-                        "z" : 0,
+                        "z" : 1,
                         "rotation" : 0,
 
                         "Croll" : 1,
                         "Cpitch" : 0, 
-                        "Cyaw" : 0.1,
+                        "Cyaw" : 1,
                         "Cx" : 0.6,
                         "Cy" : 0,
                         "Cz" : 1,
@@ -20,14 +20,14 @@
                         "kdroll" : 0 ,
                         "kppitch" : 0,
                         "kdpitch" : 0,
-                        "kpyaw" : 3.0,
-                        "kdyaw" : -120,
+                        "kpyaw" : 0.07,
+                        "kdyaw" : -0.15,
 
                         "kpx" : 0,
                         "kdx" : 0,
                         "kpy" : 0,
                         "kdy" : 0,
-                        "kpz" : 0,
+                        "kpz" : 0.1,
                         "kdz" : 0,
                         "kiz" : 0,
 
@@ -43,7 +43,7 @@
                         "rollPitchSwitch" : 0,
 
                         "servo1offset" : 0,
-                        "servo2offset" : 0.0
+                        "servo2offset" : 0
                         },
         "weights": { "eulerGamma" : 0,
                     "rollRateGamma" : 0.7,
