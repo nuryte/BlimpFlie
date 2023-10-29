@@ -7,11 +7,10 @@ import time
 import numpy as np
 
 # User interface
-mygui = SensorGUI()
+mygui = SensorGUI(GUI_ENABLED)
 mygui.sleep(0.02)
 
-# Joystick
-joyhandler = JoystickHandler()
+
 # Communication
 esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
 
@@ -19,37 +18,45 @@ esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
 robConfig = RobotConfig(esp_now, ROBOT_CONFIG_FILE)
 # Set configs for all slave indexes that you want to use
 # Bicopter basic contains configs for a robot with no feedback
-robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, ROBOT_JASON)
 # robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+
+YAW_SENSOR, Z_SENSOR = robConfig.getFeedbackParams(ROBOT_JASON)
+
+# Joystick
+joyhandler = JoystickHandler(yaw_sensor=YAW_SENSOR)
+
+if YAW_SENSOR:
+    robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure IMU
+
+if Z_SENSOR:
+    robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
+
+robConfig.startThrustRange(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")  # Motor specifications
 robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)  # Start communication
 
-robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure IMU
-robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
+###### Communicate until Y button (Exit) is pressed #####
+y_pressed = False
 
-angle = 0
-angle_r = 0
-
-flag = False
-y = False
 try:
-    while not y:
+    while not y_pressed:
 
-        outputs, y= joyhandler.get_outputs()
-        a = joyhandler.a_state
+        outputs, y_pressed= joyhandler.get_outputs()
+        a_key_pressed = joyhandler.a_state
 
         feedback = esp_now.getFeedback(1)
 
-        if a:
+        if a_key_pressed:
             # print(outputs)
-            outputs[1] = 0.2
-            if feedback[5] < 400:
-                flag = True
-                time_elapse = time.time()
-                angle_r = np.random.uniform(0, 2 * np.pi)
-                joyhandler.tz += angle_r
+            outputs[1] = 0.2 # constant x force
+            if feedback[5] < 400: # if distance is less than 4 meters then turn
+                time_elapse = time.time() # save the current time
+                # angle_r = np.random.uniform(0, np.pi) + np.pi/2 # random value in the opposite direction
+                # joyhandler.tz += angle_r # modify the angle to send
+                joyhandler.tz += np.pi
                 while (time.time() - time_elapse) < 3:
                     outputs, y = joyhandler.get_outputs()
-                    a = joyhandler.a_state
+                    a_key_pressed = joyhandler.a_state
                     mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])  # display sensor data
                     mygui.sleep(0.02)
                     esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
