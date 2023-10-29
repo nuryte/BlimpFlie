@@ -91,6 +91,7 @@ class RobotConfig:
         ]
 
         for data in data_sets:
+            time.sleep(.1)
             if not self._send_data(data, BRODCAST_CHANNEL, SLAVE_INDEX):
                 return False
 
@@ -120,6 +121,7 @@ class RobotConfig:
              ]]
         
         for data in data_sets:
+            time.sleep(.1)
             if not self._send_data(data, BRODCAST_CHANNEL, SLAVE_INDEX):
                 return False
 

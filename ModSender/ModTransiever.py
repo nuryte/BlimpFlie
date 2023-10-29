@@ -17,7 +17,10 @@ esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
 robConfig = RobotConfig(esp_now, ROBOT_CONFIG_FILE)
 # Set configs for all slave indexes that you want to use
 # Bicopter basic contains configs for a robot with no feedback
-robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, ROBOT_JASON)
+active = robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, ROBOT_JASON)
+if not active:
+    quit()
+robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, ROBOT_JASON)  # Redundant sent.
 # robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 
 YAW_SENSOR, Z_SENSOR = robConfig.getFeedbackParams(ROBOT_JASON)
