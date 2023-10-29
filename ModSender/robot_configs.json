@@ -27,7 +27,7 @@
                         "kdx" : 0,
                         "kpy" : 0,
                         "kdy" : 0,
-                        "kpz" : 0.01,
+                        "kpz" : 1,
                         "kdz" : 0.01,
 
 
@@ -71,7 +71,9 @@
                     "PORT" : 1345,
                     "motor_type" : 0,
                     "mode" : 2,
-                    "control" : 0
+                    "control" : 0,
+                    "min_thrust": 1050,
+                    "max_thrust": 1800
                     }
     },
     "bicopterbasic_zhenyu": {
