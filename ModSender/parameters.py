@@ -24,15 +24,11 @@ LIST_OF_MAC_ADDRESS = [
     "48:27:E2:E6:E6:50", # 13 new Bingxu
 ]
 
-
 MASTER_MAC = "34:85:18:AB:ED:C0"
 SLAVE_INDEX = 13 #-1 means broadcast
 BRODCAST_CHANNEL = 1 # SLAVE_INDEX will override this value if SLAVE_INDEX is not -1
 
 
-
 GUI_ENABLED = True
-
-
 MIN_Z = 0
 MAX_Z = 50
