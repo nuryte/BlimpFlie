@@ -8,10 +8,10 @@
                         "z" : 1,
                         "rotation" : 0,
 
-                        "Croll" : 0.05,
+                        "Croll" : 1,
                         "Cpitch" : 0, 
                         "Cyaw" : 1,
-                        "Cx" : 0.6,
+                        "Cx" : 1,
                         "Cy" : 0,
                         "Cz" : 1,
                         "Cabsz" : 1,
@@ -20,18 +20,16 @@
                         "kdroll" : 0 ,
                         "kppitch" : 0,
                         "kdpitch" : 0,
-                        "kpyaw" : 0.01,
-                        "kdyaw" : -0.05,
+                        "kpyaw" : 0.04,
+                        "kdyaw" : -0.06,
 
                         "kpx" : 0,
                         "kdx" : 0,
                         "kpy" : 0,
                         "kdy" : 0,
-                        "kpz" : 1,
-                        "kdz" : 0.01,
-
-
-                        "kiz" : 0,
+                        "kpz" : 0.5,
+                        "kdz" : 300000.0,
+                        "kiz" : 0.0,
 
                         "integral_dt" : 0,
                         "z_int_low" : 0,
@@ -51,8 +49,8 @@
                     "rollRateGamma" : 0.7,
                     "yawRateGamma" : 0.975,
                     "pitchRateGamma" : 0.7,
-                    "zGamma" : 0.8,
-                    "vzGamma" : 0.975
+                    "zGamma" : 0.5,
+                    "vzGamma" : 0.5
                     },
         "initflags": {
                     "_comment": "flags to be used in the init", 
@@ -226,7 +224,7 @@
                         "rotation" : 0,
 
                         "Croll" : 0.1,
-                        "Cpitch" : 0, 
+                        "Cpitch" : 0,
                         "Cyaw" : 0.02,
                         "Cx" : 0.2,
                         "Cy" : 0,
@@ -267,7 +265,7 @@
                     "vzGamma" : 0.975
                     },
         "initflags": {
-                    "_comment": "flags to be used in the init", 
+                    "_comment": "flags to be used in the init",
                     "_comment": "-bool verbose: allows some debug print statments",
                     "_comment": "-bool sensors: enables or disables the sensorsuite package: if false all values will be 0, and sensorReady =false in the sensor ",
                     "_comment":"-bool UDP: starts up the UDP connection such that other UDP functions will be enabled",
