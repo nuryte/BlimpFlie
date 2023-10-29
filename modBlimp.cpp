@@ -150,8 +150,12 @@ void ModBlimp::init(init_flags_t *init_flagsIn, init_sensors_t *init_sensorsIn, 
   if (init_flags->control == 0) {
   servo1.setPeriodHertz(50); // Standard 50hz servo
   servo2.setPeriodHertz(50); // Standard 50hz servo
-  servo1.attach(SERVO1, 900, 2100);
-  servo2.attach(SERVO2, 900, 2100);
+
+  int servo_min = 450;
+  int servo_max = 2550;  //FIXME set it somewhere else
+
+  servo1.attach(SERVO1, servo_min, servo_max);
+  servo2.attach(SERVO2, servo_min, servo_max);
   pinMode(THRUST1, OUTPUT);
   pinMode(THRUST2, OUTPUT);
   if (init_flags->motor_type == 0)

@@ -20,16 +20,16 @@
                         "kdroll" : 0 ,
                         "kppitch" : 0,
                         "kdpitch" : 0,
-                        "kpyaw" : -0.05,
-                        "kdyaw" : 0.05,
+                        "kpyaw" : 0.04,
+                        "kdyaw" : -0.06,
 
                         "kpx" : 0,
                         "kdx" : 0,
                         "kpy" : 0,
                         "kdy" : 0,
-                        "kpz" : 0.1,
-                        "kdz" : 0,
-                        "kiz" : 0,
+                        "kpz" : 0.5,
+                        "kdz" : 300000.0,
+                        "kiz" : 0.0,
 
                         "integral_dt" : 0,
                         "z_int_low" : 0,
@@ -42,15 +42,15 @@
                         "rollOffset" : 0,
                         "rollPitchSwitch" : 0,
 
-                        "servo1offset" : 1,
-                        "servo2offset" : 0.6
+                        "servo1offset" : 0.0,
+                        "servo2offset" : 0.0
                         },
         "weights": { "eulerGamma" : 0,
                     "rollRateGamma" : 0.7,
                     "yawRateGamma" : 0.975,
                     "pitchRateGamma" : 0.7,
-                    "zGamma" : 0.8,
-                    "vzGamma" : 0.975
+                    "zGamma" : 0.5,
+                    "vzGamma" : 0.5
                     },
         "initflags": {
                     "_comment": "flags to be used in the init", 
