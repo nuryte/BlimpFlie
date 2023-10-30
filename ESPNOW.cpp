@@ -75,7 +75,8 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len)
   {
     ReceivedData *incomingSensorData = (ReceivedData *)data;
     // Process the ReceivedData as needed
-    esp_sensor_ready = false;
+
+//    Serial.print(" We are here");
     memcpy(&ESPNOW_ReceivedData, incomingSensorData, sizeof(ESPNOW_ReceivedData));
     esp_sensor_ready = true;
   }

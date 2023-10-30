@@ -75,68 +75,68 @@ sensor values that control the sensors - if you want to turn off sensors use ini
 - float zGamma: is the weight of the weighted average on estimatedZ (0 means that it always uses the newest value)
 */
 sensor_weights_t weights = {
-        .eulerGamma = 0.0f,
-        .rollRateGamma = 0.7f,
-        .yawRateGamma = 0.7f,
-        .pitchRateGamma = 0.7f,
-        .zGamma = 0.9f,
-        .vzGamma = 0.9f,
+  .eulerGamma = 0.0f,
+  .rollRateGamma = 0.7f,
+  .yawRateGamma = 0.7f,
+  .pitchRateGamma = 0.7f,
+  .zGamma = 0.9f,
+  .vzGamma = 0.9f,
 };
 
 
 /*
-PD terms for use in the feedback controller
-- bool roll, pitch, yaw, x, y, z, rotation:
+PD terms for use in the feedback controller 
+- bool roll, pitch, yaw, x, y, z, rotation: 
           enables that type of feedback (true means feedback is on for that state variable)
-- float Croll, Cpitch, Cyaw, Cx, Cy, Cz, Cabsz:
+- float Croll, Cpitch, Cyaw, Cx, Cy, Cz, Cabsz: 
           KP term applied to the controller input
-- float kproll, kdroll, kppitch, kdpitch, kpyaw, kdyaw:
+- float kproll, kdroll, kppitch, kdpitch, kpyaw, kdyaw: 
 - float kpx, kdx, kpy, kdy, kpz, kdz;
-          Kp and kd terms applied to each feedback mechanism using the sensors
+          Kp and kd terms applied to each feedback mechanism using the sensors 
           (some do not have sensor availibility like x and y)
 - float lx;
           a control variable used as the arm between the center of mass and the propellers
 */
 feedback_t feedbackPD = {
-        .roll = false,
-        .pitch = false,
-        .yaw = false,
-        .x = false,
-        .y = false,
-        .z = false,
-        .rotation = false,
+  .roll = false,
+  .pitch = false, 
+  .yaw = false,
+  .x = false,
+  .y = false,
+  .z = false,
+  .rotation = false,
 
-        .Croll = 1,
-        .Cpitch = 0,
-        .Cyaw = 1,
-        .Cx = 1,
-        .Cy = 0,
-        .Cz = 1,
-        .Cabsz = 1,
+  .Croll = 1,
+  .Cpitch = 0, 
+  .Cyaw = 1,
+  .Cx = 1,
+  .Cy = 0,
+  .Cz = 1,
+  .Cabsz = 1,
 
-        .kproll = 0,
-        .kdroll = 0.0f,
-        .kppitch = 0,
-        .kdpitch = 0,
-        .kpyaw = 3.0f,
-        .kdyaw = -150.0f,//-70//5f,
+  .kproll = 0,
+  .kdroll = 0.0f,
+  .kppitch = 0,
+  .kdpitch = 0,
+  .kpyaw = 3.0f,
+  .kdyaw = -150.0f,//-70//5f,
 
-        .kpx = 0,
-        .kdx = 0,
-        .kpy = 0,
-        .kdy = 0,
-        .kpz = 0.1f,//.4f
-        .kdz = -0.5f,
+  .kpx = 0,
+  .kdx = 0,
+  .kpy = 0,
+  .kdy = 0,
+  .kpz = 0.1f,//.4f
+  .kdz = -0.5f,
 
-        .lx = .15,
+  .lx = .15,
 };
 // EXTRA TERMS
 RollPitchAdjustments rollPitchAdjust = {
-        .rollPitchSwitch = false,
-        .pitchSign = 1,
-        .pitchOffset = 0,
-        .rollSign = 1,
-        .rollOffset = 0,
+  .rollPitchSwitch = false,
+  .pitchSign = 1,
+  .pitchOffset = 0,
+  .rollSign = 1,
+  .rollOffset = 0,
 };
 
 
@@ -152,10 +152,11 @@ float z_integral = 0;
 float servo1offset = 0;
 float servo2offset = 0;
 
-//sender feedback
+//sender feedback 
 bool transceiverEnabled = false;
 uint8_t transceiverAddress[6];
 ReceivedData espSendData;
+ReceivedData sensorData;
 
 feedback_t * PDterms = &feedbackPD;
 //storage variables
@@ -216,20 +217,20 @@ void loop() {
 
 
 
-    /*
-    if flag = 0: normal control logic
-    if flag = 1 or 2: use old magnetometer calibration
-    if flag = 10, 11 or 12: do flag changes // flag changes should turn off or on sensor feedback as well as PID controls
-    if flag = 20: do low level control
-    if flag = 21: do high level control (same as 0)
-    if flag = 22: do nicla low level control
-    if flag = 23: do nicla high level control
-    */
-
-    int flag = raws.flag;
-    getLatestSensorData(&sensors);
-
-
+  /*
+  if flag = 0: normal control logic
+  if flag = 1 or 2: use old magnetometer calibration
+  if flag = 10, 11 or 12: do flag changes // flag changes should turn off or on sensor feedback as well as PID controls
+  if flag = 20: do low level control
+  if flag = 21: do high level control (same as 0)
+  if flag = 22: do nicla low level control
+  if flag = 23: do nicla high level control
+  */
+  
+  int flag = raws.flag;
+  getLatestSensorData(&sensors);
+  blimp.getSensorRaws(&sensorData); //reading from Ultrasound wireless
+  
 
     if ((int)(flag/10) == 0){// flag == 0, 1, 2 uses control of what used to be the correct way
         zero(init_flags.servo, &outputs); // call zeroing function for servo
@@ -343,7 +344,9 @@ void loop() {
             espSendData.values[2] = sensors.roll;
             espSendData.values[3] = sensors.yaw;
             espSendData.values[4] = sensors.velocityZ;
-            espSendData.values[5] = sensors.rollrate;
+//             espSendData.values[5] = sensors.rollrate;
+            espSendData.values[5] = sensorData.values[0];
+            Serial.print(sensorData.values[0]);
 
             blimp.send_esp_feedback(transceiverAddress, &espSendData);
         }
@@ -368,6 +371,8 @@ void loop() {
         Serial.print(sensors.roll);
         Serial.print(',');
         Serial.println(sensors.yaw);
+        Serial.print(',');
+        Serial.println(sensorData.values[0]);
         counter2 = 0;
     }
     lastflag = flag;
