@@ -44,7 +44,7 @@ try:
         outputs, y_pressed = joyhandler.get_outputs()  # get joystick input
         # outputs = [0]*13
         feedback = esp_now.getFeedback(1)  # get sensor data from robot
-        print(feedback)
+        # print(feedback)
 
         mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])  # display sensor data
 
