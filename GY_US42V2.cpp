@@ -11,6 +11,7 @@
 // Constructor implementation
 GY_US42V2::GY_US42V2(uint8_t address) : sensorAddress(address) {
     Wire.begin();  // Initialize the I2C bus
+     delay(100);
 }
 
 // Method to read distance from sensor
@@ -18,7 +19,7 @@ uint16_t GY_US42V2::readDistance() {
     Wire.beginTransmission(sensorAddress);  // Begin transmission to sensor
     Wire.write(RANGE_COMMAND);  // Send command to start a ranging cycle in cm
     Wire.endTransmission();  // End transmission
-    delay(100);  // Wait for ranging to complete
+    //delay(100);  // Wait for ranging to complete
 
     Wire.requestFrom(sensorAddress, READ_BYTES);  // Request 2 bytes of data from sensor
     if (Wire.available() == READ_BYTES) {  // Check if data is available

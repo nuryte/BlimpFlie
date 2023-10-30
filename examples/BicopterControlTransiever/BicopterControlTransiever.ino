@@ -2,6 +2,7 @@
 
 #include "BNO85.h"
 #include "baro390.h"
+#include "GY_US42V2.h"  // Include the header file
 
 // #include "BNO55.h"
 // #include "baro280.h"
@@ -9,6 +10,8 @@
 ModBlimp blimp;
 BNO85 bno;
 baro390 baro;
+GY_US42V2 sonar_sensor;  // Create an instance of the GY_US42V2 class
+
 
 IBusBM IBus;
 
@@ -156,6 +159,7 @@ float servo2offset = 0;
 bool transceiverEnabled = false;
 uint8_t transceiverAddress[6];
 ReceivedData espSendData;
+ReceivedData sensorData;
 
 feedback_t * PDterms = &feedbackPD;
 //storage variables
@@ -216,19 +220,26 @@ void loop() {
 
 
 
-    /*
-    if flag = 0: normal control logic
-    if flag = 1 or 2: use old magnetometer calibration
-    if flag = 10, 11 or 12: do flag changes // flag changes should turn off or on sensor feedback as well as PID controls
-    if flag = 20: do low level control
-    if flag = 21: do high level control (same as 0)
-    if flag = 22: do nicla low level control
-    if flag = 23: do nicla high level control
-    */
+  /*
+  if flag = 0: normal control logic
+  if flag = 1 or 2: use old magnetometer calibration
+  if flag = 10, 11 or 12: do flag changes // flag changes should turn off or on sensor feedback as well as PID controls
+  if flag = 20: do low level control
+  if flag = 21: do high level control (same as 0)
+  if flag = 22: do nicla low level control
+  if flag = 23: do nicla high level control
+  */
 
-    int flag = raws.flag;
-    getLatestSensorData(&sensors);
+  int flag = raws.flag;
+  getLatestSensorData(&sensors);
+  blimp.getSensorRaws(&sensorData); //reading from Ultrasound wireless
 
+
+  int sonar_sensor_enabled = 1;  //FIXME make this a flag
+
+  if(sonar_sensor_enabled){
+    sensorData.values[0] = sonar_sensor.readDistance();  // Read distance from sensor
+  }
 
 
     if ((int)(flag/10) == 0){// flag == 0, 1, 2 uses control of what used to be the correct way
@@ -343,7 +354,9 @@ void loop() {
             espSendData.values[2] = sensors.roll;
             espSendData.values[3] = sensors.yaw;
             espSendData.values[4] = sensors.velocityZ;
-            espSendData.values[5] = sensors.rollrate;
+//             espSendData.values[5] = sensors.rollrate;
+            espSendData.values[5] = sensorData.values[0];
+//             Serial.print(sensorData.values[0]);
 
             blimp.send_esp_feedback(transceiverAddress, &espSendData);
         }
