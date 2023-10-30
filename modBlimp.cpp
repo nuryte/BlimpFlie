@@ -143,6 +143,7 @@ void ModBlimp::init(init_flags_t *init_flagsIn, init_sensors_t *init_sensorsIn, 
   Serial.println("Starting Motor Servo Init");
   pinMode(SERVO1, OUTPUT);
   pinMode(SERVO2, OUTPUT);
+  pinMode(BATT, INPUT);
   ESP32PWM::allocateTimer(0);
   ESP32PWM::allocateTimer(1);
   ESP32PWM::allocateTimer(2);
@@ -594,9 +595,19 @@ void ModBlimp::getOutputs(controller_t *controls, sensors_t *sensors, actuation_
   return;
 }
 
-void ModBlimp::executeOutputs(actuation_t *outputs)
+float ModBlimp::executeOutputs(actuation_t *outputs)
 {
-  if (init_flags->control == 0){
+  Vbatt = Vbatt * 0.95 + analogReadMilliVolts(BATT) * .05;
+  //Serial.println(analogReadMilliVolts(BATT));
+  float Vbattf = 2 * Vbatt / 1000.0;
+  if (Vbattf < 3.4f && Vbattf > 1.0f){
+    servo1.writeMicroseconds(0);
+    servo2.writeMicroseconds(0);
+    thrust1.writeMicroseconds(0);
+    thrust2.writeMicroseconds(0);
+    return Vbattf;
+  }
+  else if (init_flags->control == 0){
     servo1.write((int)(outputs->s1 * 180));
     servo2.write((int)((1 - outputs->s2) * 180));
     if (init_flags->motor_type == 0)
@@ -627,6 +638,7 @@ void ModBlimp::executeOutputs(actuation_t *outputs)
       }
     }
     time_end = millis();
+    
   }
   else if (init_flags->control == 2){
       if (outputs->ready)
@@ -644,7 +656,7 @@ void ModBlimp::executeOutputs(actuation_t *outputs)
         analogWrite(SERVO2, (int)0);
       }
   }
-
+  return Vbattf;
 }
 void ModBlimp::send_udp_feedback(String dat1, String dat2, String dat3, String dat4)
 {

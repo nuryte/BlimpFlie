@@ -144,6 +144,7 @@ float servo2offset = 0;
 bool transceiverEnabled = false;
 uint8_t transceiverAddress[6];
 ReceivedData espSendData;
+float battery_level = 0;
 
 feedback_t * PDterms = &feedbackPD;
 //storage variables
@@ -176,9 +177,8 @@ bool snapon = 0;
 // float resyncPitchTemp = 0;
 // float resyncTimer = 0;
 unsigned long timed = micros();
-
 int lastflag = 0;
-
+bool nicla_state = false;
 int counter2 = 0;
 void loop() {
 
@@ -209,6 +209,8 @@ void loop() {
   
 
   if ((int)(flag/10) == 0){// flag == 0, 1, 2uses control of what used to be the correct way
+    outputs.ready = false;
+    battery_level = blimp.executeOutputs(&outputs);
     return; //changes outputs using the old format
   } else if ((int)(flag/10) == 1){ //flag == 10, 11, 12
     //set FLAGS for other stuff
@@ -248,6 +250,8 @@ void loop() {
       controls.ty = raws.data[4];
       controls.tz = raws.data[5];
       controls.absz = raws.data[6];
+      nicla_state = (bool)raws.data[7];
+      
     } else { //nicla control
       blimp.IBus.loop();
       controls.ready = raws.ready;
@@ -259,7 +263,9 @@ void loop() {
       controls.tz = (float)blimp.IBus.readChannel(5)/1000.0f;
       controls.absz = (float)blimp.IBus.readChannel(6)/1000.0f;
     } 
-    
+    if (nicla_state){
+      addNiclaControl(&controls, &sensors, &blimp);
+    }
     addFeedback(&controls, &sensors); //this function is implemented here for you to customize
     getOutputs(&controls, &sensors, &outputs);
 
@@ -296,7 +302,7 @@ void loop() {
     
     //getLatestSensorData(&sensors);
   } 
-  blimp.executeOutputs(&outputs);
+  battery_level = blimp.executeOutputs(&outputs);
   int dt = (int)(micros()-timed);
   while (4000 - dt > 0){
     dt = (int)(micros()-timed);
@@ -325,8 +331,8 @@ void loop() {
       espSendData.values[1] = outputs.m2;
       espSendData.values[2] = outputs.s1;
       espSendData.values[3] = outputs.s2;
-      espSendData.values[4] = outputs.m1;
-      espSendData.values[5] = outputs.m2;      
+      espSendData.values[4] = controls.tz;
+      espSendData.values[5] = battery_level;      
       blimp.send_esp_feedback(transceiverAddress, &espSendData);
     }
   }
@@ -339,13 +345,15 @@ void loop() {
     Serial.print(',');
     Serial.print(sensors.yaw);
     Serial.print(',');
+    Serial.print(battery_level);
+    Serial.print(',');
     Serial.print(espSendData.values[2]);
     Serial.print(',');
     Serial.print(espSendData.values[3]);
     Serial.print(',');
-    Serial.print(espSendData.values[4]);
+    Serial.print(espSendData.values[0]);
     Serial.print(',');
-    Serial.println(espSendData.values[5]);
+    Serial.println(espSendData.values[1]);
     counter2 = 0;
   }
   lastflag = flag;
