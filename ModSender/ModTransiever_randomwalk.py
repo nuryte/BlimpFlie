@@ -48,12 +48,18 @@ try:
 
         if a_key_pressed:
             # print(outputs)
-            outputs[1] = 0.2 # constant x force
-            if feedback[5] < 400: # if distance is less than 4 meters then turn
+            x_force = 0.2 # constant x force to move forward
+
+            distance = feedback[5]  # Distance from the sonar
+            outputs[1] = x_force
+
+            if distance < 400: # if distance is less than 400 cm then turn
                 time_elapse = time.time() # save the current time
                 # angle_r = np.random.uniform(0, np.pi) + np.pi/2 # random value in the opposite direction
                 # joyhandler.tz += angle_r # modify the angle to send
                 joyhandler.tz += np.pi
+
+
                 while (time.time() - time_elapse) < 3:
                     outputs, y = joyhandler.get_outputs()
                     a_key_pressed = joyhandler.a_state

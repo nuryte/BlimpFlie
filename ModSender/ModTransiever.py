@@ -1,3 +1,4 @@
+from autonomy.RandomWalk import RandomWalk
 from parameters import *
 from teleop.joystickHandler import JoystickHandler
 from comm.ESPNOW import ESPNOWControl
@@ -37,6 +38,9 @@ if Z_SENSOR:
 robConfig.startThrustRange(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")  # Motor specifications
 robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)  # Start communication
 
+# Autonomous Behavior
+autonomous = RandomWalk()
+
 ###### Communicate until Y button (Exit) is pressed #####
 y_pressed = False
 try:
@@ -46,8 +50,17 @@ try:
         feedback = esp_now.getFeedback(1)  # get sensor data from robot
         # print(feedback)
 
-        mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])  # display sensor data
+        # ------- Autonomous mode ----------
+        a_key_pressed = joyhandler.a_state
+        if a_key_pressed:
+            des_fx, des_z, des_yaw = autonomous.execute(feedback)
+            outputs[1] = des_fx  # Forward
+            outputs[3] = des_z  # Z
+            joyhandler.tz = des_yaw  # Yaw control
 
+        # Display sensors and output
+        mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])  # display sensor data
+        # Communicate with robot
         esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)  # send control command to robot
 
 
