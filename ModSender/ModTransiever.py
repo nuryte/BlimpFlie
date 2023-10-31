@@ -40,6 +40,7 @@ robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)  # Start co
 
 # Autonomous Behavior
 autonomous = RandomWalk()
+autonomous.begin()
 
 ###### Communicate until Y button (Exit) is pressed #####
 y_pressed = False
