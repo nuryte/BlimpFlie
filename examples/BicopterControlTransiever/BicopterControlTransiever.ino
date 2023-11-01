@@ -1,6 +1,4 @@
 #include "modBlimp.h"
-
-
 #include "BNO85.h"
 #include "baro390.h"
 #include "GY_US42V2.h"  // Include the header file
@@ -38,14 +36,15 @@ flags to be used in the init
 init_flags_t init_flags = {
   .verbose = false,
   .sensors = false,
-  .escarm = true,
+  .escarm = false,
   .calibrate_esc = false,
   .UDP = false,
   .Ibus = false,
   .ESPNOW = true,
-  .servo = true,
+  .servo = false,
+  .spinning = true,
   .PORT = 1345,
-  .motor_type = 0,
+  .motor_type = 1,
   .mode = 2,
   .control = 0,
 };
@@ -185,19 +184,6 @@ float wall = 0;
 const int ANGLE_INCREMENT = 10;
 const int TOTAL_ANGLES = 360;
 const int ARRAY_SIZE = TOTAL_ANGLES / ANGLE_INCREMENT;
-// Spinning Blimp Variables
-float sf1, sf2, bf1, bf2 = 0;
-float st1, st2, bt1, bt2 = 0;
-float f1, f2, t1, t2 = 0;
-float sigmoi, s_yaw, tau, ss = 0;
-float alpha = 1;
-float lastState = -1; // Initialized to a value that is not 0 or 1 to ensure the initial check works
-unsigned long stateChangeTime = 0; // Time at which controls->ss changes state
-// Time of flight sensor values
-float wall = 0;
-const int ANGLE_INCREMENT = 10;
-const int TOTAL_ANGLES = 360;
-const int ARRAY_SIZE = TOTAL_ANGLES / ANGLE_INCREMENT;
 
 void setup() {
 
@@ -316,14 +302,15 @@ void loop() {
         addFeedback(&controls, &sensors); //this function is implemented here for you to customize
 
         // Init flags to select which getOutput function is selected
-        if (init_flags.servo == 0){
-            // 180 degree servo getOutputs
-            getOutputs(&controls, &sensors, &outputs);
-        } else {
+        if (init_flags.servo == 1){
             // 270 degree servo getOutputs
             getOutputs270(&controls, &sensors, &outputs);
+        } else if ((init_flags.spinning == 1)){
+            SpinninggetOutputs(&controls, &sensors, &outputs);
+        } else {
+            // 180 degree servo getOutputs
+            getOutputs(&controls, &sensors, &outputs);
         }
-
     }
     else if (flag == 98 && lastflag != flag){
         Serial.print("Set flags: ");
@@ -768,22 +755,4 @@ void zero(bool servo, actuation_t *out){
         out->ready = false;
     }
 }
-// Function for initialising the servos whether they're 180 or 270 degree variants
-void zero(bool servo, actuation_t *out){
-  if (servo == 0){
-  // 180 servo
-  out->s1 = .5f;
-  out->s2 = .5f;
-  out->m1 = 0;
-  out->m2 = 0;
-  out->ready = false;
-  } else {
-  // 270 servo
-  out->s1 = 0.33f;
-  out->s2 = 0.33f;
-  out->m1 = 0;
-  out->m2 = 0;
-  out->ready = false;
-  }
-} 
 

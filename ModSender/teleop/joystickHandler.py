@@ -3,7 +3,7 @@ from math import atan2, sqrt, pi
 import pygame
 import time
 
-from ModSender.parameters import MAX_Z, MIN_Z
+from parameters import MAX_Z, MIN_Z
 
 
 class JoystickHandler:
@@ -90,7 +90,7 @@ class JoystickHandler:
         else:
             self.tz = -1 * self.right_horizontal
 
-        return [int(self.b_state), self.fx, self.fy, self.fz, self.tx, self.ty, self.tz, 0, 0, 0, 0, 0, 0]
+        return [int(self.b_state), self.fx, self.fy, self.fz, self.tx, self.ty, self.tz, int(self.x_state), 0, 0, 0, 0, 0]
 
     def get_sblimp_controls(self):
         """Return controls for sblimp."""

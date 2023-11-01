@@ -16,7 +16,7 @@ typedef struct robot_specs_s {
 
 
 typedef struct init_flags_s {
-    bool verbose, sensors, escarm, calibrate_esc, UDP, Ibus, ESPNOW, servo;
+    bool verbose, sensors, escarm, calibrate_esc, UDP, Ibus, ESPNOW, servo, spinning;
     int PORT, motor_type, mode, control;
 } init_flags_t;
 

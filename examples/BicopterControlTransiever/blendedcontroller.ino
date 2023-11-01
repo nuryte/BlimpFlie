@@ -1,5 +1,5 @@
 // creates the output values used for actuation from the control values
-void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
+void SpinninggetOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
 {
   // Bicopter control
   
@@ -17,7 +17,8 @@ void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
     out->ready = false;
     return;
   }
-
+  Serial.print("I'm in the spinning section");
+  Serial.println(sensors->yaw);
   out->ready = true;
   // inputs to the A-Matrix
   float l = PDterms->lx; //.
@@ -76,7 +77,7 @@ void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
     }
 
   // if (0 <= ((sensors->yaw + walk_heading)) && ((sensors->yaw + walk_heading)) < PI){
-  if (0 + yaw_calibrate <= ((s_yaw + joytheta)) && ((s_yaw + joytheta)) < PI + yaw_calibrate){
+  if (0 <= ((s_yaw + joytheta)) && ((s_yaw + joytheta)) < PI){
     tau = joymag;
   } else{
     tau = -joymag;
@@ -84,9 +85,8 @@ void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
   // sf and st are variables associated with the spinning blimp
   sf1 = controls->fz + (tau); // LHS motor
   sf2 = controls->fz - (tau); // RHS motor
-  float tune = PI * 0.4;
-  st1 = tune;
-  st2 = tune * 0.1; 
+  st1 = PI * (0.16);
+  st2 = PI * (1 - 0.16); 
 
   // Sigmoid Function
   // f(x) = 1 / ( 1+exp(-x*alpha)) (below is faster c++ version)
@@ -153,21 +153,4 @@ float updateFunction(float currentTime) {
     }
 
     return sigmoi;  // Return the sigmoid value
-}
-
-float* GetDistances(int yaw, float distance) {
-    static float distances[ARRAY_SIZE] = {0}; // The array maintains its values between function calls due to the 'static' keyword.
-    
-    // Validate yaw value
-    if (yaw < 0 || yaw >= TOTAL_ANGLES) {
-        return distances;  // Return the array without updating if the yaw value is out of bounds.
-    }
-
-    // Calculate the index corresponding to the yaw value.
-    int index = yaw / ANGLE_INCREMENT;
-
-    // Update the distance at the appropriate index.
-    distances[index] = distance;
-
-    return distances;  // Return the entire array.
 }
