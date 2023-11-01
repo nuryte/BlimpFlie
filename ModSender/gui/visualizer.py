@@ -3,15 +3,24 @@ Author       : Hanqing Qi
 Date         : 2023-10-24 16:30:43
 LastEditors  : Hanqing Qi
 LastEditTime : 2023-10-24 19:45:46
-FilePath     : /ModSender/simpleGUI.py
+FilePath     : /ModSender/visualizer.py
 Description  : Simple GUI for ModSender
 """
+import time
+from math import pi
+from random import random
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-class SimpleGUI:
-    def __init__(self):
+class SensorGUI:
+    def __init__(self, enable_gui=True):
+        self.enable_gui = enable_gui
+
+        if not enable_gui:
+            return
+
         # Plotting initialization
         plt.ion()
 
@@ -57,7 +66,7 @@ class SimpleGUI:
             1.2, -1.1, "", fontsize=12, color="white"
         )
 
-        hight_label = self.ax.text(1.4, -1.2, "Height", fontsize=12, color="white")
+        height_label = self.ax.text(1.4, -1.2, "Height", fontsize=12, color="white")
         yaw_label = self.ax.text(-0.1, -1.2, "Yaw", fontsize=12, color="white")
 
     def _angle_to_coordinates(self, radians: float, radius: float = 1.0) -> tuple:
@@ -84,6 +93,9 @@ class SimpleGUI:
         @param       {float} des_height: Desired value of height from the controller
         @return      {*} None
         """
+        if not self.enable_gui:
+            return
+
         cur_x, cur_y = self._angle_to_coordinates(cur_yaw)
         des_x, des_y = self._angle_to_coordinates(des_yaw)
 
@@ -140,3 +152,26 @@ class SimpleGUI:
         self.current_height_value.set_color("r")  # Setting the text color to red
 
         plt.draw()
+
+
+    def sleep(self, delay=0.05):
+        """
+        Wait using plt
+        :param delay: time to wait
+        """
+        if self.enable_gui:
+            plt.pause(delay)
+        else:
+            time.sleep(delay)
+
+
+if __name__ == "__main__":
+    mygui = SensorGUI(True)
+
+    # Test plotting with increasing numbers
+    for i in range(100):
+        mygui.update_interface(i*2*pi/100, pi*random()/6, i*0.2, 0)
+        mygui.sleep()
+
+    plt.ioff()
+    plt.show()

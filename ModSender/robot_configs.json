@@ -2,10 +2,10 @@
     "bicopterbasic": {
         "feedbackPD" : { "roll" : 0,
                         "pitch" : 0,
-                        "yaw" : 0,
+                        "yaw" : 1,
                         "x" : 0,
                         "y" : 0,
-                        "z" : 0,
+                        "z" : 1,
                         "rotation" : 0,
 
                         "Croll" : 1,
@@ -20,16 +20,16 @@
                         "kdroll" : 0 ,
                         "kppitch" : 0,
                         "kdpitch" : 0,
-                        "kpyaw" : 3.0,
-                        "kdyaw" : -120,
+                        "kpyaw" : 0.04,
+                        "kdyaw" : -0.06,
 
                         "kpx" : 0,
                         "kdx" : 0,
                         "kpy" : 0,
                         "kdy" : 0,
-                        "kpz" : 0,
-                        "kdz" : 0,
-                        "kiz" : 0,
+                        "kpz" : 0.5,
+                        "kdz" : 0.3,
+                        "kiz" : 0.0,
 
                         "integral_dt" : 0,
                         "z_int_low" : 0,
@@ -42,15 +42,15 @@
                         "rollOffset" : 0,
                         "rollPitchSwitch" : 0,
 
-                        "servo1offset" : 0,
+                        "servo1offset" : 0.0,
                         "servo2offset" : 0.0
                         },
         "weights": { "eulerGamma" : 0,
                     "rollRateGamma" : 0.7,
                     "yawRateGamma" : 0.975,
                     "pitchRateGamma" : 0.7,
-                    "zGamma" : 0.8,
-                    "vzGamma" : 0.975
+                    "zGamma" : 0.5,
+                    "vzGamma" : 0.5
                     },
         "initflags": {
                     "_comment": "flags to be used in the init", 
@@ -69,7 +69,9 @@
                     "PORT" : 1345,
                     "motor_type" : 0,
                     "mode" : 2,
-                    "control" : 0
+                    "control" : 0,
+                    "min_thrust": 1050,
+                    "max_thrust": 1800
                     }
     },
     

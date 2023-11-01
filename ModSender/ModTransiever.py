@@ -1,69 +1,72 @@
-from joystickHandler import JoystickHandler
-from ESPNOW import ESPNOWControl
-from robotConfig import RobotConfig
-from gui.simpleGUI import SimpleGUI
+from autonomy.RandomWalk import RandomWalk
+from parameters import *
+from teleop.joystickHandler import JoystickHandler
+from comm.ESPNOW import ESPNOWControl
+from robot.robotConfig import RobotConfig
+from gui.visualizer import SensorGUI
 import time
 
-#ESPNOW PARAMS
-ESP_VERBOSE = True
-# PORT = "COM5"
-PORT = "/dev/tty.usbmodem14101"
-LIST_OF_MAC_ADDRESS = [
-    "34:85:18:91:BC:94",
-    "34:85:18:91:BE:34",
-    "48:27:E2:E6:EC:CC", #2 Sensor test drone
-    "48:27:E2:E6:E4:0C", #3 Big diego drone first
-    "48:27:E2:E6:DF:A0", #4 KKL Nicla drone
-    "48:27:E2:E6:ED:24", #5 bingxu
-    "48:27:E2:E6:DE:3C", #6
-    "DC:54:75:D7:F7:FC", #7 hanqing
-    "48:27:E2:E6:E6:44", #8 kim
-    "34:85:18:91:24:F0", #9
-    "34:85:18:91:20:a8", #10 Leo
-    "48:27:E2:E6:E4:0C", #11 Big Wall
-    "48:27:E2:E6:E6:50", #12 qual
-    
-]
-
-# MASTER_MAC = "34:85:18:91:C7:80" #address of the transiever
-MASTER_MAC = "C0:49:EF:EB:FE:34"
-
-SLAVE_INDEX = 12 #-1 means broadcast
+# User interface
+mygui = SensorGUI(GUI_ENABLED)
+mygui.sleep(0.02)
 
 
-BRODCAST_CHANNEL = 1 # SLAVE_INDEX will override this value if SLAVE_INDEX is not -1
-
-
-joyhandler = JoystickHandler()
+# Communication
 esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
-robConfig = RobotConfig(esp_now, "ModSender/robot_configs.json")
-# robConfig = RobotConfig(esp_now, "ModSender\\robot_configs.json")
 
-#set configs for all slave indexes that you want to use 
-#bicopter basic contains configs for a robot with no feedback
-robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
-# robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterspinning")
-#robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+# Load robot configuration
+robConfig = RobotConfig(esp_now, ROBOT_CONFIG_FILE)
+# Set configs for all slave indexes that you want to use
+# Bicopter basic contains configs for a robot with no feedback
+active = robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, ROBOT_JASON)
+if not active:
+    quit()
+robConfig.sendAllFlags(BRODCAST_CHANNEL, SLAVE_INDEX, ROBOT_JASON)  # Redundant sent.
+# robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 
-# robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)
-# robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)
-robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)
-mygui = SimpleGUI()
+YAW_SENSOR, Z_SENSOR = robConfig.getFeedbackParams(ROBOT_JASON)
 
+# Joystick
+joyhandler = JoystickHandler(yaw_sensor=YAW_SENSOR)
 
-y = False
+if YAW_SENSOR:
+    robConfig.startBNO(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure IMU
+
+if Z_SENSOR:
+    robConfig.startBaro(BRODCAST_CHANNEL, SLAVE_INDEX)  # Configure Barometer
+
+robConfig.startThrustRange(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")  # Motor specifications
+robConfig.startTranseiver(BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC)  # Start communication
+
+# Autonomous Behavior
+autonomous = RandomWalk()
+
+###### Communicate until Y button (Exit) is pressed #####
+y_pressed = False
 try:
-    while not y:
-        outputs, y = joyhandler.get_outputs()
-        #outputs = [0]*13
-        feedback  = esp_now.getFeedback(1)
-        mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])
-        
-        esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
-        #flag, feedback  = esp_now.getFeedback()
-        #print(feedback)
-        #esp_now.send(outputs, BRODCAST_CHANNEL, 0)
-        time.sleep(0.02)
+    while not y_pressed:
+        outputs, y_pressed = joyhandler.get_outputs()  # get joystick input
+        # outputs = [0]*13
+        feedback = esp_now.getFeedback(1)  # get sensor data from robot
+        # print(feedback)
+
+        # ------- Autonomous mode ----------
+        a_key_pressed = joyhandler.a_state
+        if a_key_pressed:
+            des_fx, des_z, des_yaw = autonomous.execute(feedback)
+            outputs[1] = des_fx  # Forward
+            outputs[3] = des_z  # Z
+            joyhandler.tz = des_yaw  # Yaw control
+
+        # Display sensors and output
+        mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])  # display sensor data
+        # Communicate with robot
+        esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)  # send control command to robot
+
+
+        # time.sleep(0.02)
+        mygui.sleep(0.02)
+
 except KeyboardInterrupt:
     print("Loop terminated by user.")
 esp_now.send([0] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
