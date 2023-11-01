@@ -7,7 +7,7 @@ import time
 #ESPNOW PARAMS
 ESP_VERBOSE = True
 # PORT = "COM5"
-PORT = "/dev/tty.usbmodem1432201"
+PORT = "/dev/tty.usbmodem14101"
 LIST_OF_MAC_ADDRESS = [
     "34:85:18:91:BC:94",
     "34:85:18:91:BE:34",
@@ -21,13 +21,14 @@ LIST_OF_MAC_ADDRESS = [
     "34:85:18:91:24:F0", #9
     "34:85:18:91:20:a8", #10 Leo
     "48:27:E2:E6:E4:0C", #11 Big Wall
+    "48:27:E2:E6:E6:50", #12 qual
     
 ]
 
 # MASTER_MAC = "34:85:18:91:C7:80" #address of the transiever
 MASTER_MAC = "C0:49:EF:EB:FE:34"
 
-SLAVE_INDEX = 11 #-1 means broadcast
+SLAVE_INDEX = 12 #-1 means broadcast
 
 
 BRODCAST_CHANNEL = 1 # SLAVE_INDEX will override this value if SLAVE_INDEX is not -1
