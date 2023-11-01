@@ -24,6 +24,9 @@ uint16_t GY_US42V2::readDistance() {
     Wire.requestFrom(sensorAddress, READ_BYTES);  // Request 2 bytes of data from sensor
     if (Wire.available() == READ_BYTES) {  // Check if data is available
         uint16_t distance = Wire.read() << 8 | Wire.read();  // Combine the two bytes into a 16-bit number
+
+
+
         return distance;  // Return the distance value
     } else {
         return 0xFFFF;  // Return 0xFFFF if data is not available to indicate an error

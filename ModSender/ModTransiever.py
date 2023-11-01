@@ -60,7 +60,7 @@ try:
             joyhandler.tz = des_yaw  # Yaw control
 
         # Display sensors and output
-        mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])  # display sensor data
+        mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3], feedback[5])  # display sensor data
         # Communicate with robot
         esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)  # send control command to robot
 
@@ -70,5 +70,5 @@ try:
 
 except KeyboardInterrupt:
     print("Loop terminated by user.")
-esp_now.send([0] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
+esp_now.send([21, 0,0,0,0,0,0,0,0,0,0,0,0], BRODCAST_CHANNEL, SLAVE_INDEX)
 esp_now.close()
