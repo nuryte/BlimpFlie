@@ -6,7 +6,7 @@ ROBOT_JASON = "bicopterbasic"
 #ESPNOW PARAMS
 # MASTER_MAC = "34:85:18:91:C7:80" #address of the transceiver
 ESP_VERBOSE = True
-PORT = "/dev/tty.usbmodem14101" #serial port for the transiever
+PORT = "/dev/tty.usbmodem14301" #serial port for the transiever
 
 LIST_OF_MAC_ADDRESS = [
     # "34:85:18:91:BC:94",
@@ -21,7 +21,7 @@ LIST_OF_MAC_ADDRESS = [
     # "34:85:18:91:24:F0", #9
     # "48:27:E2:E6:E4:0C", #10 Big Wall
     # "48:27:E2:E6:E1:00", #11 david
-    "34:85:18:91:B7:4C", #12 Leo
+    "48:27:E2:E6:E6:44", #12 Leo
     # "34:85:18:91:CF:40", #13 test
 ]
 MASTER_MAC = "34:85:18:91:49:C0"
