@@ -1,7 +1,7 @@
 
 
 ROBOT_CONFIG_FILE = "./ModSender/robot_configs.json"
-ROBOT_JASON = "bicopterspinning"
+ROBOT_JASON = "bicopterbasic"
 
 #ESPNOW PARAMS
 # MASTER_MAC = "34:85:18:91:C7:80" #address of the transceiver
