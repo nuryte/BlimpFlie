@@ -1,5 +1,3 @@
-
-
 ROBOT_CONFIG_FILE = "./ModSender/robot_configs.json"
 ROBOT_JASON = "bicopterbasic"
 
