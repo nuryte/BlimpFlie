@@ -29,7 +29,7 @@ class SensorGUI:
         self.fig.patch.set_facecolor("black")
         self.ax.set_facecolor("black")
 
-        self.ax.set_xlim(-1.1, 2.1)
+        self.ax.set_xlim(-1.1, 3)
         self.ax.set_ylim(-1.1, 1.5)
         self.ax.set_aspect("equal", "box")
         self.circle = plt.Circle((0, 0), 1, fill=False, color="white", linewidth=2)
@@ -49,6 +49,10 @@ class SensorGUI:
             1.4, 0, bar_width, color="g", bottom=bar_bottom
         )
 
+        self.distance_bar = self.ax.bar(
+            2.4, 0.3, bar_width, color="b", bottom=bar_bottom
+        )
+
         self.current_yaw = self.ax.arrow(
             0, 0, 0, 0, head_width=0.1, head_length=0.1, fc="r", ec="r", linewidth=3
         )
@@ -58,6 +62,7 @@ class SensorGUI:
 
         self.current_yaw_value = self.ax.text(-0.4, 1.1, "", fontsize=12, color="white")
         self.desired_yaw_value = self.ax.text(-0.4, 1.3, "", fontsize=12, color="white")
+        self.distance_value = self.ax.text(-0.4, 1.5, "", fontsize=12, color="white")
 
         self.current_height_value = self.ax.text(
             1.6, -1.1, "", fontsize=12, color="white"
@@ -65,9 +70,13 @@ class SensorGUI:
         self.desired_height_value = self.ax.text(
             1.2, -1.1, "", fontsize=12, color="white"
         )
+        self.distance_value = self.ax.text(
+            2.0, -1.1, "", fontsize=12, color="white"
+        )
 
         height_label = self.ax.text(1.4, -1.2, "Height", fontsize=12, color="white")
         yaw_label = self.ax.text(-0.1, -1.2, "Yaw", fontsize=12, color="white")
+        distance_label = self.ax.text(2.2, -1.2, "Distance", fontsize=12, color="white")
 
     def _angle_to_coordinates(self, radians: float, radius: float = 1.0) -> tuple:
         """
@@ -82,7 +91,7 @@ class SensorGUI:
         return x, y
 
     def update_interface(
-        self, cur_yaw: float, des_yaw: float, cur_height: float, des_height: float
+        self, cur_yaw: float, des_yaw: float, cur_height: float, des_height: float, distance: float
     ) -> None:
         """
         @description: Update the gui interface
@@ -128,6 +137,7 @@ class SensorGUI:
 
         self.cur_height_bar[0].set_height(cur_height / 10 if cur_height > 0 else 0)
         self.des_height_bar[0].set_height(des_height / 10 if des_height > 0 else 0)
+        self.distance_bar[0].set_height(distance / 300 if distance > 0 else 0)
 
         self.current_yaw_value.set_text(
             f"Current: {(cur_yaw % (2*np.pi)) / np.pi * 180:.2f}˚"
@@ -145,11 +155,21 @@ class SensorGUI:
         self.desired_height_value.set_position((1.2, max(des_height / 10 - 0.9, -0.9)))
         self.desired_height_value.set_color("g")  # Setting the text color to green
 
+        # Display height text
         self.current_height_value.set_text(
             f"C{cur_height if cur_height > 0 else 0:.2f}"
         )
-        self.current_height_value.set_position((1.6, max(cur_height / 10 - 0.9, -0.9)))
+        self.current_height_value.set_position((1.6, max(cur_height / 10 - 0.9, -0.8)))
         self.current_height_value.set_color("r")  # Setting the text color to red
+
+        # Display distance value
+        self.distance_value.set_text("{:06d}".format(int(distance)))
+            #f"{distance if distance > 0 else 0:10.2f}"        )
+        self.distance_value.set_position((2.2,-1.4))
+        self.distance_value.set_color("b")  # Setting the text color to red
+
+
+
 
         plt.draw()
 
