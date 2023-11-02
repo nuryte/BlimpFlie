@@ -17,8 +17,8 @@ void SpinninggetOutputs(controller_t *controls, sensors_t *sensors, actuation_t 
     out->ready = false;
     return;
   }
-  Serial.print("I'm in the spinning section");
-  Serial.println(sensors->yaw);
+  // Serial.print("I'm in the spinning section");
+  // Serial.println(sensors->yaw);
   out->ready = true;
   // inputs to the A-Matrix
   float l = PDterms->lx; //.

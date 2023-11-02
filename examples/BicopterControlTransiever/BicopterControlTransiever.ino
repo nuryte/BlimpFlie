@@ -469,7 +469,7 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
         init_flags->motor_type = raws->data[7],
         init_flags->mode = raws->data[8],
         init_flags->control = raws->data[9],
-                Serial.println("REINIT!");
+                // Serial.println("REINIT!");
         blimp.init(init_flags, &init_sensors, PDterms);
 
     } else if (raws->flag == 17){
