@@ -13,10 +13,16 @@ from random import random
 import matplotlib.pyplot as plt
 import numpy as np
 
+import matplotlib.widgets as widgets
+
 
 class SensorGUI:
-    def __init__(self, enable_gui=True):
+    def __init__(self, enable_gui=True, esp_now=None, robConfig = None):
         self.enable_gui = enable_gui
+
+        # To modify from esp_now and robConfig
+        self.esp_now = esp_now
+        self.robConfig = robConfig
 
         if not enable_gui:
             return
@@ -77,6 +83,23 @@ class SensorGUI:
         height_label = self.ax.text(1.4, -1.2, "Height", fontsize=12, color="white")
         yaw_label = self.ax.text(-0.1, -1.2, "Yaw", fontsize=12, color="white")
         distance_label = self.ax.text(2.2, -1.2, "Distance", fontsize=12, color="white")
+
+
+        ### Buttons
+        self.button_ax = plt.axes([0.5, 0.9, 0.15, 0.05])  # Adjust the position and size of the button
+        self.button = widgets.Button(self.button_ax, 'Reconnect')
+        self.button.on_clicked(self.on_button_click)
+
+        ### Toggle Button
+        self.toggle_ax = plt.axes([0.65, 0.9, 0.15, 0.05])  # Adjust the position and size of the toggle button
+        self.toggle = widgets.CheckButtons(self.toggle_ax, ['Toggle'], [False])
+        self.toggle.on_clicked(self.on_toggle_click)
+
+        ### Case Selection Radio Buttons
+        self.radio_ax = plt.axes([0.8, 0.80, 0.15, 0.05*3])  # Adjust the position and size of the radio buttons
+        self.radio = widgets.RadioButtons(self.radio_ax, ['Case 1', 'Case 2', 'Case 3'], activecolor='red')
+        self.radio.on_clicked(self.on_radio_click)
+
 
     def _angle_to_coordinates(self, radians: float, radius: float = 1.0) -> tuple:
         """
@@ -168,11 +191,19 @@ class SensorGUI:
         self.distance_value.set_position((2.2,-1.4))
         self.distance_value.set_color("b")  # Setting the text color to red
 
-
-
-
         plt.draw()
 
+    def on_button_click(self, event):
+        self.robConfig.InicializationSystem()
+        print("Restart")
+
+    def on_toggle_click(self, label):
+        print(f'Toggle {label} clicked.')
+        # You can add logic here to handle toggle actions
+
+    def on_radio_click(self, label):
+        print(f'Radio button {label} selected.')
+        # You can add logic here to handle radio button selection
 
     def sleep(self, delay=0.05):
         """
@@ -183,6 +214,7 @@ class SensorGUI:
             plt.pause(delay)
         else:
             time.sleep(delay)
+
 
 
 if __name__ == "__main__":

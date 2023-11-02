@@ -1,10 +1,21 @@
 import time
 import json
 
+
 class RobotConfig:
-    def __init__(self, esp_now, config_file="robot_configs.json"):
+
+    def __init__(self, esp_now, config_file="robot_configs.json", BRODCAST_CHANNEL=None, SLAVE_INDEX=None, ROBOT_JASON=None, MASTER_MAC=None):
+
+        self.MASTER_MAC = MASTER_MAC
+        self.ROBOT_JASON = ROBOT_JASON
+        self.SLAVE_INDEX = SLAVE_INDEX
+        self.BRODCAST_CHANNEL = BRODCAST_CHANNEL
+
         self.esp_now = esp_now
-        with open(config_file, 'r') as f:
+
+        self.config_file = config_file
+
+        with open(self.config_file, 'r') as f:
             self.configs = json.load(f)
 
     def get_config(self, CONFIG_INDEX):
@@ -182,4 +193,30 @@ class RobotConfig:
         z_endabled = feedbackPD["z"]
 
         return yaw_enabled,z_endabled
+
+    def InicializationSystem(self):
+        # Set configs for all slave indexes that you want to use
+
+        with open(self.config_file, 'r') as f:
+            self.configs = json.load(f)
+
+        # Bicopter basic contains configs for a robot with no feedback
+        active = self.sendAllFlags(self.BRODCAST_CHANNEL, self.SLAVE_INDEX, self.ROBOT_JASON)
+        if not active:
+            quit()
+        self.sendAllFlags(self.BRODCAST_CHANNEL, self.SLAVE_INDEX, self.ROBOT_JASON)  # Redundant sent.
+        # robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
+
+        YAW_SENSOR, Z_SENSOR = self.getFeedbackParams(self.ROBOT_JASON)
+
+
+
+        if YAW_SENSOR:
+            self.startBNO(self.BRODCAST_CHANNEL, self.SLAVE_INDEX)  # Configure IMU
+
+        if Z_SENSOR:
+            self.startBaro(self.BRODCAST_CHANNEL, self.SLAVE_INDEX)  # Configure Barometer
+
+        self.startThrustRange(self.BRODCAST_CHANNEL, self.SLAVE_INDEX, "bicopterbasic")  # Motor specifications
+        self.startTranseiver(self.BRODCAST_CHANNEL, self.SLAVE_INDEX, self.MASTER_MAC)  # Start communication
 
