@@ -13,14 +13,15 @@
 #define SERVO2 D10
 #define THRUST1 D0
 #define THRUST2 D1
-#define SERVO3 D2
-#define SERVO4 D3
+#define BATT A2
+
 
 
 class ModBlimp;
 class ModBlimp {
     private:
 
+        uint32_t Vbatt = 0;
 
         float M_PI_F;
         Servo servo1;
