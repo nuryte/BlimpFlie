@@ -8,7 +8,7 @@ class RobotConfig:
             self.configs = json.load(f)
 
     def get_config(self, CONFIG_INDEX):
-        return self.configs.get(str(CONFIG_INDEX), {'feedbackPD': {}, 'weights': {}, 'initflags': {}})
+        return self.configs.get(str(CONFIG_INDEX), {'feedbackPD': {}, 'weights': {}, 'initflags': {}, 'hardware': {}})
     
     def _fill_with_zeros(self, data, size=13):
         """Fill the given list with zeros until it reaches the specified size."""
@@ -35,6 +35,7 @@ class RobotConfig:
         config = self.get_config(CONFIG_INDEX)
         feedbackPD = config['feedbackPD']
         weights = config['weights']
+        hardware = config['hardware']
         
 
         data_sets = [
@@ -60,7 +61,10 @@ class RobotConfig:
              feedbackPD["kppitch"],
              feedbackPD["kdpitch"], 
              feedbackPD["kpyaw"], 
-             feedbackPD["kdyaw"]],
+             feedbackPD["kdyaw"],
+             feedbackPD["kiyaw"], 
+             feedbackPD["kiyawrate"], 
+             feedbackPD["yawRateIntegralRange"]],
             [13, 0, 
              feedbackPD["kpx"], 
              feedbackPD["kdx"], 
@@ -79,7 +83,8 @@ class RobotConfig:
              weights["pitchRateGamma"],
              weights["yawRateGamma"], 
              weights["zGamma"], 
-             weights["vzGamma"]],
+             weights["vzGamma"],
+             hardware["yawScaleEnable"]],
             [15, 0, 
              feedbackPD["kiz"], 
              feedbackPD["integral_dt"], 
@@ -87,10 +92,15 @@ class RobotConfig:
              feedbackPD["z_int_high"], 
              feedbackPD["servo1offset"], 
              feedbackPD["servo2offset"],
-             feedbackPD["rollPitchSwitch"]]
+             feedbackPD["rollPitchSwitch"],
+             hardware["kf1"],
+             hardware["kf2"],
+             hardware["maxRadsYaw"],
+             hardware["fxyawScale"]]
         ]
 
         for data in data_sets:
+            time.sleep(.1)
             if not self._send_data(data, BRODCAST_CHANNEL, SLAVE_INDEX):
                 return False
 

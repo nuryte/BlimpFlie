@@ -205,8 +205,13 @@ void ESPNOW::sendResponse(uint8_t mac_addr[6], ReceivedData *responseData) {
     // Serial.print(mac_addr[4]);
     // Serial.print(":");
     // Serial.print(mac_addr[5]);
-    
 
+
+    
+    // ReceivedData localData;
+    // memset(&localData, 0, sizeof(ReceivedData)); 
+    // memcpy(&localData, responseData, sizeof(ReceivedData));
+    
     esp_err_t result = esp_now_send(mac_addr, (uint8_t *)responseData, sizeof(ReceivedData));
     // if (result == ESP_OK) {
     //     Serial.println(" Sent response successfully");

@@ -58,5 +58,5 @@ float baro280::getEstimatedZ(){
 
 }
 float baro280::getVelocityZ(){
-    return (estimatedZ - oldZ)*dtBaro;
+    return (estimatedZ - oldZ)/((float)dtBaro / 1000000.0f);
 }
