@@ -26,10 +26,10 @@ void ModBlimp::initDefault()
       .UDP = true,
       .Ibus = true,
       .servo = false,
-      .spinning = true,
       .motor_type = 0,
       .mode = 0,
       .control = 0,
+      .spinning = 0,
   };
 
   /*
