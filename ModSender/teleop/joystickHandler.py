@@ -95,12 +95,29 @@ class JoystickHandler:
     def get_sblimp_controls(self):
         """Return controls for sblimp."""
         return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    
+    def get_spinning_controls(self):
+        """Return controls for spinning."""
+        dt = time.time() - self.time_start
+        self.time_start = time.time()
+
+        # self.fx = -1 * self.right_vertical
+        self.fx = self.right_vertical
+        self.fz = self.right_horizontal
+        # Z in range
+        self.fz = min(max(self.fz, MIN_Z), MAX_Z)
+
+        return [int(self.b_state), self.fx, self.fy, self.fz, self.tx, self.ty, self.tz, 0, int(self.x_state), 0, 0, 0, 0]
 
     def get_outputs(self):
         """Get the output controls based on blimp type."""
         self.update_joy_params()
         if self.blimp_type == "bicopter":
             return self.get_bicopter_controls(), self.y_state
+        elif self.x_state == 1:
+            print("spinning")
+            return self.get_spinning_controls(), self.y_state
+
 
         
 
