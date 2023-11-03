@@ -5,9 +5,6 @@ from comm.ESPNOW import ESPNOWControl
 from robot.robotConfig import RobotConfig
 from gui.visualizer import SensorGUI
 import time
-import math
-def clamp(value, min_val=0.0, max_val=1.0):
-    return min(max(value, min_val), max_val)
 
 
 # Communication
@@ -39,39 +36,7 @@ try:
         # outputs = [0]*13
         feedback = esp_now.getFeedback(1)  # get sensor data from robot
         # print(feedback)
-        '''
-        outputs[8] = int(toggle_a)
-        feedback2 = esp_now.getFeedback(2) 
-        #print(feedback2[0:4])
-        feedback = esp_now.getFeedback(1) 
-        # print(feedback)
-        _height = feedback[0]
-        _yaw = feedback[1]
-        _x = feedback[2] * 1000
-        _y = feedback[3] * 1000
-        _w = feedback[4] * 1000
-        _h = feedback[5] * 1000
-        
-        dt = time.time() - time_prev
-        x_cal = (x/max_x - x_min_cal)/(x_max_cal - x_min_cal)#,0,1)
-        #If the Nicla updates the desired yaw and height
-        if _x == 0 and _y== 0 and _w == 0 and _h == 0:
-            detected = False
-            #right side .7 is max
-            #left side .1 is max
-        elif x != _x or y != _y or w != _w or h != _h:
-            detected = True
-            
-            des_yaw = ((x_cal - .5)*math.pi/2)
-            control_yaw = _yaw- des_yaw * Ky#* .2 + control_yaw* .8
-            #des_yaw -= Ky * des_yaw 
-            des_height = des_height*gamma2 + ((y - max_y/2)/max_y)*(1-gamma2)
-            control_height = _height
-            
 
-                
-        x, y, w, h = _x, _y, _w, _h
-        '''
         # ------- Autonomous mode ----------
         a_key_pressed = joyhandler.a_state
         if a_key_pressed:

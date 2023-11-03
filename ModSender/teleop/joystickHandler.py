@@ -41,7 +41,6 @@ class JoystickHandler:
         pygame.joystick.init()
         while pygame.joystick.get_count() == 0:
             print("No controller Connected")
-            quit()
         pygame.display.init()
         self.joystick = pygame.joystick.Joystick(self.joy_index)
         self.joystick.init()
@@ -69,14 +68,14 @@ class JoystickHandler:
             val = self.joystick.get_axis(idx)
             setattr(self, axis, val if abs(val) > 0.1 else 0)
 
-    def get_bicopter_controls(self, base_yaw = 0, base_height = 0):
+    def get_bicopter_controls(self):
         """Return controls for bicopter."""
         dt = time.time() - self.time_start
         self.time_start = time.time()
 
         # self.fx = -1 * self.right_vertical
         self.fx = (self.right_trigger + 1)/2 - (self.left_trigger + 1)/2
-        self.fz = self.fz + -1* self.left_vertical * dt if self.b_state else base_height
+        self.fz = self.fz + -1* self.left_vertical * dt if self.b_state else 0
         # Z in range
         self.fz = min(max(self.fz, MIN_Z), MAX_Z)
 
@@ -97,11 +96,11 @@ class JoystickHandler:
         """Return controls for sblimp."""
         return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    def get_outputs(self, base_yaw = 0, base_height = 0):
+    def get_outputs(self):
         """Get the output controls based on blimp type."""
         self.update_joy_params()
         if self.blimp_type == "bicopter":
-            return self.get_bicopter_controls(base_yaw,base_height), self.y_state, self.a_state
+            return self.get_bicopter_controls(), self.y_state
 
         
 
