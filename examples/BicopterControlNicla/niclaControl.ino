@@ -5,7 +5,7 @@ float x_cal;
 float max_x = 240;
 float max_y = 160;
 float _x, _y, _w, _h;
-float des_yaw, _yaw, Ky;
+float des_yaw, _yaw, Ky, _height;
 float x = 0;
 float y = 0;
 float w = 0;
@@ -15,12 +15,13 @@ float control_height = 0;
 float des_height, gamma2;
 
 void addNiclaControl(controller_t *controls, sensors_t *sensors, ModBlimp *blimp){
-  blimp->IBus.loop();
+  
   _x = (float)blimp->IBus.readChannel(0);
   _y = (float)blimp->IBus.readChannel(1);
   _w = (float)blimp->IBus.readChannel(2);
   _h = (float)blimp->IBus.readChannel(3);
   _yaw = sensors->yaw;
+  _height = sensors->estimatedZ;
   x_cal = (x / max_x); //- x_min_cal) / (x_max_cal - x_min_cal);
   if (_x == 0 && _y == 0 && _w == 0 && _h == 0) {
     //detected = false;

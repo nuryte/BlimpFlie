@@ -9,25 +9,25 @@ def clamp(value, min_val=0.0, max_val=1.0):
 
 #ESPNOW PARAMS
 ESP_VERBOSE = True
-PORT = "COM21" #serial port for the transiever
+PORT = "COM10" #serial port for the transiever
 LIST_OF_MAC_ADDRESS = [
     "34:85:18:91:BC:94",
     "34:85:18:91:BE:34",
     "48:27:E2:E6:EC:CC", #2 Sensor test drone
-    "48:27:E2:E6:E4:0C", #3 Big diego drone first
-    "48:27:E2:E6:DF:A0", #4 KKL Nicla drone
-    "48:27:E2:E6:ED:24", #5 bingxu
-    "48:27:E2:E6:DE:3C", #6
-    "DC:54:75:D7:F7:FC", #7 hanqing
-    "48:27:E2:E6:E6:44", #8 kim
-    "34:85:18:91:24:F0", #9
+    # "48:27:E2:E6:E4:0C", #3 Big diego drone first
+    # "48:27:E2:E6:DF:A0", #4 KKL Nicla drone
+    # "48:27:E2:E6:ED:24", #5 bingxu
+    # "48:27:E2:E6:DE:3C", #6
+    # "DC:54:75:D7:F7:FC", #7 hanqing
+    # "48:27:E2:E6:E6:44", #8 kim
+    # "34:85:18:91:24:F0", #9
     
     
     
 ]
 
 # MASTER_MAC = "34:85:18:91:C7:80" #address of the transiever
-MASTER_MAC = "34:85:18:91:BC:94"
+MASTER_MAC = "48:27:E2:E6:ED:24"
 
 SLAVE_INDEX = 2 #-1 means broadcast
 
@@ -84,7 +84,7 @@ try:
 
 
       
-        outputs, toggle_y, toggle_a = joyhandler.get_outputs(_yaw, _height + 3)
+        outputs, toggle_y, toggle_a = joyhandler.get_outputs(_yaw, _height + .2)
         
         outputs[8] = int(toggle_a)
         feedback2 = esp_now.getFeedback(2) 
@@ -113,10 +113,7 @@ try:
             #des_yaw -= Ky * des_yaw 
             des_height = des_height*gamma2 + ((y - max_y/2)/max_y)*(1-gamma2)
             control_height = _height
-            if abs(des_yaw ) < .2:
-                outputs[1] = .2
-            else:
-                outputs[1] = 0
+            
 
                 
         x, y, w, h = _x, _y, _w, _h
@@ -128,7 +125,7 @@ try:
         # control_height += Kh * des_height * dt
         # des_height -= Kh * des_height * dt
         #outputs[6] = control_yaw
-        mygui.update_interface(_yaw, outputs[6],toggle_a,outputs[3], x_cal*max_x, _y, _w, _h)#des_yaw+control_yaw, detected, 0)#control_height, des_height)
+        mygui.update_interface(_yaw, outputs[6],_height,outputs[3], x_cal*max_x, _y, _w, _h)#des_yaw+control_yaw, detected, 0)#control_height, des_height)
         # print("Yaw", _height, "control_yaw", round(control_yaw*180/3.14,2), "des_yaw", round(des_yaw*180/3.14,2))
 
         esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)

@@ -600,14 +600,14 @@ float ModBlimp::executeOutputs(actuation_t *outputs)
   Vbatt = Vbatt * 0.95 + analogReadMilliVolts(BATT) * .05;
   //Serial.println(analogReadMilliVolts(BATT));
   float Vbattf = 2 * Vbatt / 1000.0;
-  if (Vbattf < 3.4f && Vbattf > 1.0f){
-    servo1.writeMicroseconds(0);
-    servo2.writeMicroseconds(0);
-    thrust1.writeMicroseconds(0);
-    thrust2.writeMicroseconds(0);
-    return Vbattf;
-  }
-  else if (init_flags->control == 0){
+  // if (Vbattf < 3.4f && Vbattf > 1.0f){
+  //   servo1.writeMicroseconds(0);
+  //   servo2.writeMicroseconds(0);
+  //   thrust1.writeMicroseconds(0);
+  //   thrust2.writeMicroseconds(0);
+  //   return Vbattf;
+  // }
+  if (init_flags->control == 0){
     servo1.write((int)(outputs->s1 * 180));
     servo2.write((int)((1 - outputs->s2) * 180));
     if (init_flags->motor_type == 0)
@@ -737,7 +737,7 @@ void ModBlimp::calibrate_esc(Servo &thrust1, Servo &thrust2)
   // ESC arming sequence for BLHeli S
   thrust1.writeMicroseconds(2000);
   delay(10);
-  thrust2.writeMicroseconds(23000);
+  thrust2.writeMicroseconds(2000);
   delay(15000);
 
 

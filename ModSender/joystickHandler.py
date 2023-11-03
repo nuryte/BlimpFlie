@@ -33,6 +33,7 @@ class JoystickHandler:
         pygame.joystick.init()
         while pygame.joystick.get_count() == 0:
             print("No controller Connected")
+            quit()
         pygame.display.init()
         self.joystick = pygame.joystick.Joystick(self.joy_index)
         self.joystick.init()
@@ -67,7 +68,7 @@ class JoystickHandler:
 
         self.fx = -1* self.right_vertical
         self.fz = self.fz + -1* self.left_vertical * dt if self.b_state else base_height
-        self.tz =  self.tz+ self.right_horizontal * dt if self.b_state else base_yaw
+        self.tz =  self.tz- self.right_horizontal * dt if self.b_state else base_yaw
         return [int(self.b_state), self.fx, self.fy, self.fz, self.tx, self.ty, self.tz, 0, 0, 0, 0, 0, 0]
 
     def get_sblimp_controls(self):

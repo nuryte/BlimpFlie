@@ -1,7 +1,7 @@
 {
     "bicopterbasic": {
         "feedbackPD" : { "roll" : 0,
-                        "pitch" : 0,
+                        "pitch" : 1,
                         "yaw" : 1,
                         "x" : 0,
                         "y" : 0,
@@ -11,7 +11,7 @@
                         "Croll" : 1,
                         "Cpitch" : 0, 
                         "Cyaw" : 1,
-                        "Cx" : 0.6,
+                        "Cx" : 1,
                         "Cy" : 0,
                         "Cz" : 1,
                         "Cabsz" : 1,
@@ -20,20 +20,24 @@
                         "kdroll" : 0 ,
                         "kppitch" : 0,
                         "kdpitch" : 0,
-                        "kpyaw" : 0.07,
-                        "kdyaw" : -0.15,
+                        "kpyaw" : -1.5,
+                        "kdyaw" : -0.06,
 
                         "kpx" : 0,
                         "kdx" : 0,
                         "kpy" : 0,
                         "kdy" : 0,
-                        "kpz" : 0.1,
-                        "kdz" : 0,
-                        "kiz" : 0,
+                        "kpz" : 0.3,
+                        "kdz" : 0.3,
+                        "kiz" : 0.02,
+
+                        "kiyaw": 0,
+                        "kiyawrate" : -0.04,
+                        "yawRateIntegralRange"  : 3,
 
                         "integral_dt" : 0,
                         "z_int_low" : 0,
-                        "z_int_high" : 200,
+                        "z_int_high" : 0.1,
 
                         "lx" : 0.15,
                         "pitchSign" : 1,
@@ -42,15 +46,15 @@
                         "rollOffset" : 0,
                         "rollPitchSwitch" : 0,
 
-                        "servo1offset" : 0,
-                        "servo2offset" : 0
+                        "servo1offset" : 0.0,
+                        "servo2offset" : 0.25
                         },
         "weights": { "eulerGamma" : 0,
                     "rollRateGamma" : 0.7,
-                    "yawRateGamma" : 0.975,
+                    "yawRateGamma" : 0.9,
                     "pitchRateGamma" : 0.7,
                     "zGamma" : 0.8,
-                    "vzGamma" : 0.975
+                    "vzGamma" : 0.9
                     },
         "initflags": {
                     "_comment": "flags to be used in the init", 
@@ -70,7 +74,15 @@
                     "motor_type" : 0,
                     "mode" : 2,
                     "control" : 0
-                    }
+                    },
+        "hardware": {
+            "kf1": 1.2,
+            "kf2": 1,
+            "maxRadsYaw" : 0.07,
+            "fxyawScale" : 0.2,
+            "yawScaleEnable" : 0
+
+        }
     },
     "bicopterbasicAGAIN": {
         "feedbackPD" : { "roll" : 0,
