@@ -32,12 +32,13 @@ autonomous.begin()
 
 ###### Communicate until Y button (Exit) is pressed #####
 y_pressed = False
+a_pressed = False
 
 try:
     while not y_pressed:
-        outputs, y_pressed = joyhandler.get_outputs()  # get joystick input
-        # outputs = [0]*13
         feedback = esp_now.getFeedback(1)  # get sensor data from robot
+        outputs, y_pressed,a_pressed = joyhandler.get_outputs(base_yaw=feedback[1])  # get joystick input
+        # outputs = [0]*13
         # print(feedback)
         '''
         outputs[8] = int(toggle_a)
@@ -73,15 +74,15 @@ try:
         x, y, w, h = _x, _y, _w, _h
         '''
         # ------- Autonomous mode ----------
-        a_key_pressed = joyhandler.a_state
-        if a_key_pressed:
-            des_fx, des_z, des_yaw = autonomous.execute(feedback)
-            outputs[1] = des_fx  # Forward
-            outputs[3] = des_z  # Z
-            joyhandler.tz = des_yaw  # Yaw control
+        # a_key_pressed = joyhandler.a_state
+        # if a_key_pressed:
+        #     des_fx, des_z, des_yaw = autonomous.execute(feedback)
+        #     outputs[1] = des_fx  # Forward
+        #     outputs[3] = des_z  # Z
+        #     joyhandler.tz = des_yaw  # Yaw control
 
         # Display sensors and output
-        mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3], feedback[5])  # display sensor data
+        mygui.update_interface(feedback[1], outputs[6], feedback[0], outputs[3], feedback[5])  # display sensor data
         # Communicate with robot
         esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)  # send control command to robot
 

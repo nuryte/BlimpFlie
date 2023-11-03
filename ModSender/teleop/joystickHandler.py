@@ -3,7 +3,7 @@ from math import atan2, sqrt, pi
 import pygame
 import time
 
-from ModSender.parameters import MAX_Z, MIN_Z
+from parameters import MAX_Z, MIN_Z
 
 
 class JoystickHandler:
@@ -88,6 +88,8 @@ class JoystickHandler:
 
             if magnitude > 0.5:
                 self.tz = des_yaw
+            if not self.b_state:
+                self.tz = base_yaw
         else:
             self.tz = -1 * self.right_horizontal
 

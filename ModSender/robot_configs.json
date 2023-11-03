@@ -1,7 +1,7 @@
 {
     "bicopterbasic": {
         "feedbackPD" : { "roll" : 0,
-                        "pitch" : 0,
+                        "pitch" : 1,
                         "yaw" : 1,
                         "x" : 0,
                         "y" : 0,
@@ -32,8 +32,8 @@
                         "kiz" : 0.02,
 
                         "kiyaw": 0,
-                        "kiyawrate" : -0.04,
-                        "yawRateIntegralRange"  : 3,
+                        "kiyawrate" : -0.02,
+                        "yawRateIntegralRange"  : 2,
 
                         "integral_dt" : 0,
                         "z_int_low" : 0,

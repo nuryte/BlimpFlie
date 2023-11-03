@@ -550,7 +550,7 @@ void ModBlimp::getOutputs(controller_t *controls, sensors_t *sensors, actuation_
   return;
 }
 
-void ModBlimp::executeOutputs(actuation_t *outputs, robot_specs_s *robot_specs)
+float ModBlimp::executeOutputs(actuation_t *outputs, robot_specs_s *robot_specs)
 {
   Vbatt = Vbatt * 0.95 + analogReadMilliVolts(BATT) * .05;
   //Serial.println(analogReadMilliVolts(BATT));
