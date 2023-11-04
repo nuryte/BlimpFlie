@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-from ModSender.autonomy.Autonomous import Autonomous
+from autonomy.Autonomous import Autonomous
 
 
 

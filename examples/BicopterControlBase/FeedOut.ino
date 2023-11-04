@@ -33,11 +33,11 @@ void addFeedback(controller_t *controls, sensors_t *sensors) {
       e_yaw = atan2(sin(e_yaw), cos(e_yaw));
       e_yaw = clamp(e_yaw, -PI/3, PI/3);
 
-      if (false){
-        yaw_integral += e_yaw *((float)dt)/1000000.0f* kiyaw;
+      
+      yaw_integral += e_yaw *((float)dt)/1000000.0f* kiyaw;
         
-        yaw_integral = clamp(yaw_integral, -PI/4, PI/4);
-      }
+      yaw_integral = clamp(yaw_integral, -PI/4, PI/4);
+      
 
       float yaw_desired_rate = (e_yaw * PDterms->kpyaw+ yaw_integral);
       
@@ -208,10 +208,19 @@ void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
 
   // converting values to a more stable form
   
-  out->s1 = clamp((t1 + servo1offset)/PI, 0.05, .95) ; // cant handle values between PI and 2PI
-  out->s2 = clamp((t2 + servo2offset)/PI, 0.05, .95) ;
-  out->m1 = clamp(f1, 0, 1);
-  out->m2 = clamp(f2, 0, 1);
+  float newS1 = clamp((t1 + servo1offset)/PI, 0.05, .95) ; // cant handle values between PI and 2PI
+  float newS2 = clamp((t2 + servo2offset)/PI, 0.05, .95) ;
+  float newM1 = clamp(f1, 0, 1);
+  float newM2 = clamp(f2, 0, 1);
+  
+  out->s1 += (newS1 - out->s1) * 1;
+  out->m1 += (newM1 - out->m1) * 1;
+  
+  
+  out->s2 += (newS2 - out->s2) * 1;
+  out->m2 += (newM2 - out->m2) * 1;
+    
+    
   if (out->m1 < 0.02f)
   {
     out->s1 = 0.5f;

@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import matplotlib.widgets as widgets
+import matplotlib.patches as patches
 
 
 class SensorGUI:
@@ -100,6 +101,30 @@ class SensorGUI:
         self.radio = widgets.RadioButtons(self.radio_ax, ['Case 1', 'Case 2', 'Case 3'], activecolor='red')
         self.radio.on_clicked(self.on_radio_click)
 
+        # Adding an enclosing square for Nicla Detection visuals
+        self.enclosing_square = patches.Rectangle(
+            (0, 0),  # will be updated in update_interface
+            1,  # width w, will be updated in update_interface
+            1,  # height h, will be updated in update_interface
+            linewidth=1,
+            edgecolor='yellow',
+            facecolor='none',
+            zorder=4  # ensure it's drawn below the Nicla Detection visuals
+        )
+        self.ax.add_patch(self.enclosing_square)
+        # Adding the Nicla Detection Rectangle
+        self.nicla_rect = patches.Rectangle(
+            (0, 0),  # (x, y)
+            1,  # width w
+            1,  # height h
+            linewidth=1,
+            edgecolor='blue',
+            facecolor='none',
+            label='Nicla Detection',
+            zorder=3  # ensure it's drawn on top
+        )
+        self.ax.add_patch(self.nicla_rect)
+
 
     def _angle_to_coordinates(self, radians: float, radius: float = 1.0) -> tuple:
         """
@@ -112,6 +137,11 @@ class SensorGUI:
         x = self.circle.center[0] + radius * np.cos(radians)
         y = self.circle.center[1] + radius * np.sin(radians)
         return x, y
+    
+    def update_nicla_box(self, x,y, w, h, max_x, max_y):
+        self.nicla_rect.set_xy(((x - w/2)/max_x, (y - h/2)/max_y))
+        self.nicla_rect.set_width(w/max_x)
+        self.nicla_rect.set_height(h/max_y)
 
     def update_interface(
         self, cur_yaw: float, des_yaw: float, cur_height: float, des_height: float, distance: float

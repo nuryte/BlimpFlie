@@ -63,16 +63,18 @@ try:
     while not y_pressed:
         outputs, y_pressed, a_key_pressed = joyhandler.get_outputs()  # get joystick input
         # outputs = [0]*13
-
+        outputs[8] = int(a_key_pressed)
+        
         for i, robotConfig in enumerate(robotConfigs):
-            feedback = esp_now.getFeedback(i)  # get sensor data from robot
+            feedback = esp_now.getFeedback(1)  # get sensor data from robot
+            nicla = esp_now.getFeedback(2)  # get sensor data from robot
 
              # ------- Autonomous mode ----------
-            if a_key_pressed:
-                des_fx, des_z, des_yaw = behavior_robots[i].execute(feedback)
-                outputs[1] = des_fx  # Forward
-                outputs[3] = des_z  # Z
-                joyhandler.tz = des_yaw  # Yaw control
+            # if a_key_pressed:
+            #     des_fx, des_z, des_yaw = behavior_robots[i].execute(feedback)
+            #     outputs[1] = des_fx  # Forward
+            #     outputs[3] = des_z  # Z
+            #     joyhandler.tz = des_yaw  # Yaw control
 
 
             #
@@ -81,6 +83,7 @@ try:
             #     print(feedback)
 
             # Display sensors and output
+            sensor_guis[i].update_nicla_box(nicla[0], nicla[1], nicla[2], nicla[3], 240, 160)
             sensor_guis[i].update_interface(feedback[1], outputs[6], feedback[0], outputs[3], feedback[1])  # display sensor data
 
             # Send message to all robots
