@@ -1,6 +1,9 @@
 import time
 import json
 
+from ModSender.parameters import BRODCAST_CHANNEL, MASTER_MAC, ROBOT_JASON
+
+
 class RobotConfig:
     def __init__(self, esp_now, slave_index, mac_address):
         self.mac = mac_address
@@ -204,22 +207,22 @@ class RobotConfig:
             self.configs = json.load(f)
 
         # Bicopter basic contains configs for a robot with no feedback
-        active = self.sendAllFlags(self.BRODCAST_CHANNEL, self.ROBOT_JASON)
+        active = self.sendAllFlags(BRODCAST_CHANNEL, ROBOT_JASON)
         if not active:
             quit()
-        self.sendAllFlags(self.BRODCAST_CHANNEL, self.ROBOT_JASON)  # Redundant sent.
+        self.sendAllFlags(BRODCAST_CHANNEL, ROBOT_JASON)  # Redundant sent.
         # robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 
-        YAW_SENSOR, Z_SENSOR = self.getFeedbackParams(self.ROBOT_JASON)
+        YAW_SENSOR, Z_SENSOR = self.getFeedbackParams(ROBOT_JASON)
 
 
 
         if YAW_SENSOR:
-            self.startBNO(self.BRODCAST_CHANNEL)  # Configure IMU
+            self.startBNO(BRODCAST_CHANNEL)  # Configure IMU
 
         if Z_SENSOR:
-            self.startBaro(self.BRODCAST_CHANNEL)  # Configure Barometer
+            self.startBaro(BRODCAST_CHANNEL)  # Configure Barometer
 
-        self.startThrustRange(self.BRODCAST_CHANNEL, "bicopterbasic")  # Motor specifications
-        self.startTranseiver(self.BRODCAST_CHANNEL, self.MASTER_MAC)  # Start communication
+        self.startThrustRange(BRODCAST_CHANNEL, "bicopterbasic")  # Motor specifications
+        self.startTranseiver(BRODCAST_CHANNEL, MASTER_MAC)  # Start communication
 
