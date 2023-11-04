@@ -341,7 +341,8 @@ void loop() {
     counter2 = 0;
     if (transceiverEnabled){
       
-      espSendData1.flag = 1;
+//       espSendData1.flag = 1;
+
       espSendData1.values[0] = sensors.estimatedZ - sensors.groundZ;
       espSendData1.values[1] = sensors.yaw;
       espSendData1.values[2] = (float)blimp.IBus.readChannel(0)/1000.0f;

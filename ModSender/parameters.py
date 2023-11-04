@@ -5,7 +5,7 @@ ROBOT_JASON = "bicopterbasic"
 
 #ESPNOW PARAMS
 # MASTER_MAC = "34:85:18:91:C7:80" #address of the transceiver
-ESP_VERBOSE = False
+ESP_VERBOSE = True
 PORT = "COM15" #serial port for the transiever
 
 
