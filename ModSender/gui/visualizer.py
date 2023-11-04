@@ -223,8 +223,8 @@ if __name__ == "__main__":
 
     # Test plotting with increasing numbers
     for i in range(100):
-        mygui1.update_interface(i*2*pi/100, pi*random()/6, i*0.2, 0, 0)
-        mygui2.update_interface(i * 2 * pi / 100, pi * random() / 6, i * 0.2, 0, 0)
+        mygui1.update_interface(i*2*pi/100, pi*random()/6, i*0.2, 0, i)
+        mygui2.update_interface(i * 2 * pi / 100, pi * random() / 6, i * 0.2, 0, i)
         mygui1.sleep()
 
     plt.ioff()

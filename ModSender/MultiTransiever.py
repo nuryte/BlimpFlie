@@ -81,8 +81,8 @@ try:
             #     print(feedback)
 
             # Display sensors and output
-            sensor_guis[i].update_interface(feedback[1], outputs[6], feedback[0], outputs[3], feedback[1])  # display sensor data
-
+            sensor_guis[i].update_interface(feedback[1], outputs[6], feedback[0], outputs[3], feedback[2])  # display sensor data
+            print(feedback)
             # Send message to all robots
             esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, robotConfig.slave_index)  # send control command to robot
 
