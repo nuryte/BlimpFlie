@@ -27,7 +27,7 @@ esp_now = ESPNOWControl(PORT, LIST_OF_MAC_ADDRESS, ESP_VERBOSE)
 # Load robot configuration
 robotConfigs = [RobotConfig(esp_now, i, robot_mac) for i, robot_mac in enumerate(LIST_OF_MAC_ADDRESS)]
 # GUIS
-sensor_guis = [SensorGUI(GUI_ENABLED) for robConfig in robotConfigs]
+sensor_guis = [SensorGUI(GUI_ENABLED,robConfig=robConfig) for robConfig in robotConfigs]
 
 # Send flags to each robot
 for robConfig in robotConfigs:
