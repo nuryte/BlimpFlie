@@ -248,6 +248,7 @@ void loop() {
   int flag = raws.flag;
   getLatestSensorData(&sensors);
   blimp.getSensorRaws(&sensorData); //reading from Ultrasound wireless
+  
 
 
   int sonar_sensor_enabled = 1;  //FIXME make this a flag
@@ -341,22 +342,27 @@ void loop() {
     counter2 = 0;
     if (transceiverEnabled){
       
+      
       espSendData1.flag = 1;
       espSendData1.values[0] = sensors.estimatedZ - sensors.groundZ;
-      espSendData1.values[1] = sensors.yaw;
-      espSendData1.values[2] = (float)blimp.IBus.readChannel(0)/1000.0f;
-      espSendData1.values[3] = (float)blimp.IBus.readChannel(1)/1000.0f;
-      espSendData1.values[4] = (float)blimp.IBus.readChannel(2)/1000.0f;
-      espSendData1.values[5] = (float)blimp.IBus.readChannel(3)/1000.0f;      
+      espSendData1.values[1] = sensors.yaw; 
+      espSendData2.values[2] = outputs.m1;
+      espSendData2.values[3] = outputs.m2;
+      espSendData2.values[4] = outputs.s1;
+      espSendData2.values[5] = outputs.s2;
       blimp.send_esp_feedback(transceiverAddress, &espSendData1);
-      espSendData2.flag = 2;
-      espSendData2.values[0] = outputs.m1;
-      espSendData2.values[1] = outputs.m2;
-      espSendData2.values[2] = outputs.s1;
-      espSendData2.values[3] = outputs.s2;
-      espSendData2.values[4] = controls.tz;
-      espSendData2.values[5] = battery_level;      
-      blimp.send_esp_feedback(transceiverAddress, &espSendData2);
+      // espSendData2.flag = 2;
+      // espSendData1.values[2] = (float)blimp.IBus.readChannel(0)/1000.0f;
+      // espSendData1.values[3] = (float)blimp.IBus.readChannel(1)/1000.0f;
+      // espSendData1.values[4] = (float)blimp.IBus.readChannel(2)/1000.0f;
+      // espSendData1.values[5] = (float)blimp.IBus.readChannel(3)/1000.0f;     
+      // espSendData2.values[0] = outputs.m1;
+      // espSendData2.values[1] = outputs.m2;
+      // espSendData2.values[2] = outputs.s1;
+      // espSendData2.values[3] = outputs.s2;
+      // espSendData2.values[4] = controls.tz;
+      // espSendData2.values[5] = battery_level;      
+      // blimp.send_esp_feedback(transceiverAddress, &espSendData2);
     }
   }
 
