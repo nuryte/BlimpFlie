@@ -16,6 +16,7 @@ float des_height, gamma2;
 
 void addNiclaControl(controller_t *controls, sensors_t *sensors, ModBlimp *blimp){
   
+  blimp->IBus.loop();
   _x = (float)blimp->IBus.readChannel(0);
   _y = (float)blimp->IBus.readChannel(1);
   _w = (float)blimp->IBus.readChannel(2);
