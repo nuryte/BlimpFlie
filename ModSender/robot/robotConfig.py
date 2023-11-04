@@ -1,21 +1,15 @@
 import time
 import json
 
-
 class RobotConfig:
+    def __init__(self, esp_now, slave_index, mac_address):
+        self.mac = mac_address
+        self.slave_index = slave_index
 
-    def __init__(self, esp_now, config_file="robot_configs.json", BRODCAST_CHANNEL=None, SLAVE_INDEX=None, ROBOT_JASON=None, MASTER_MAC=None):
-
-        self.MASTER_MAC = MASTER_MAC
-        self.ROBOT_JASON = ROBOT_JASON
-        self.SLAVE_INDEX = SLAVE_INDEX
-        self.BRODCAST_CHANNEL = BRODCAST_CHANNEL
+        config_file = "config/" + mac_address.replace(":", "")[-4:] + ".json"
 
         self.esp_now = esp_now
-
-        self.config_file = config_file
-
-        with open(self.config_file, 'r') as f:
+        with open(config_file, 'r') as f:
             self.configs = json.load(f)
 
     def get_config(self, CONFIG_INDEX):
@@ -27,19 +21,19 @@ class RobotConfig:
             data.append(0)
         return data
 
-    def _send_data(self, esp_now_input, BRODCAST_CHANNEL, SLAVE_INDEX):
+    def _send_data(self, esp_now_input, BRODCAST_CHANNEL):
         """A helper function to encapsulate the repeated sending behavior."""
         esp_now_input = self._fill_with_zeros(esp_now_input)
         count = 0
-        while not self.esp_now.send(esp_now_input, BRODCAST_CHANNEL, SLAVE_INDEX):
+        while not self.esp_now.send(esp_now_input, BRODCAST_CHANNEL, self.slave_index):
             count += 1
             if count > 20:
-                print("Gave up sending on ", SLAVE_INDEX)
+                print("Gave up sending on ", self.slave_index)
                 return False
             time.sleep(0.05)
         return True
 
-    def sendAllFlags(self, BRODCAST_CHANNEL, SLAVE_INDEX, CONFIG_INDEX):
+    def sendAllFlags(self, BRODCAST_CHANNEL, CONFIG_INDEX):
         print("send all flags!")
 
         # Fetch the feedbackPD and weights for the given CONFIG_INDEX
@@ -112,14 +106,14 @@ class RobotConfig:
 
         for data in data_sets:
             time.sleep(.1)
-            if not self._send_data(data, BRODCAST_CHANNEL, SLAVE_INDEX):
+            if not self._send_data(data, BRODCAST_CHANNEL):
                 return False
 
-        print("All Flags Sent on ", SLAVE_INDEX, " for ", CONFIG_INDEX)
+        print("All Flags Sent on ", self.slave_index, " for ", CONFIG_INDEX)
         return True
     
 
-    def sendSetupFlags(self, BRODCAST_CHANNEL, SLAVE_INDEX, CONFIG_INDEX):
+    def sendSetupFlags(self, BRODCAST_CHANNEL, CONFIG_INDEX):
         print("send all flags!")
 
         # Fetch the feedbackPD and weights for the given CONFIG_INDEX
@@ -142,29 +136,29 @@ class RobotConfig:
         
         for data in data_sets:
             time.sleep(.1)
-            if not self._send_data(data, BRODCAST_CHANNEL, SLAVE_INDEX):
+            if not self._send_data(data, BRODCAST_CHANNEL):
                 return False
 
         print("All inits Sent on ", SLAVE_INDEX, " for ", CONFIG_INDEX)
         return True
     
-    def startBNO(self, BRODCAST_CHANNEL, SLAVE_INDEX):
+    def startBNO(self, BRODCAST_CHANNEL):
         time.sleep(0.1)
-        if not self._send_data([97], BRODCAST_CHANNEL, SLAVE_INDEX):
+        if not self._send_data([97], BRODCAST_CHANNEL):
             time.sleep(1)
             return False
         time.sleep(1)
     
 
-    def startBaro(self, BRODCAST_CHANNEL, SLAVE_INDEX):
+    def startBaro(self, BRODCAST_CHANNEL):
         time.sleep(0.1)
-        if not self._send_data([98], BRODCAST_CHANNEL, SLAVE_INDEX):
+        if not self._send_data([98], BRODCAST_CHANNEL):
             time.sleep(1)
             return False
         time.sleep(1)
     
 
-    def startTranseiver(self, BRODCAST_CHANNEL, SLAVE_INDEX, MASTER_MAC):
+    def startTranseiver(self, BRODCAST_CHANNEL, MASTER_MAC):
         time.sleep(0.1)
         # Split the MAC address into its bytes and convert to integers
         mac_bytes = [int(byte, 16) for byte in MASTER_MAC.split(':')]
@@ -172,12 +166,12 @@ class RobotConfig:
         # Convert bytes to floats and print
         mac_floats = [float(byte) for byte in mac_bytes]
         print(mac_floats)
-        if not self._send_data([17,0] + mac_floats, BRODCAST_CHANNEL, SLAVE_INDEX):
+        if not self._send_data([17,0] + mac_floats +[self.slave_index], BRODCAST_CHANNEL):
             time.sleep(1)
             return False
         time.sleep(1)
 
-    def startThrustRange(self,BRODCAST_CHANNEL, SLAVE_INDEX, CONFIG_INDEX):
+    def startThrustRange(self,BRODCAST_CHANNEL, CONFIG_INDEX):
         time.sleep(0.1)
         # Fetch the feedbackPD and weights for the given CONFIG_INDEX
         config = self.get_config(CONFIG_INDEX)
@@ -186,7 +180,7 @@ class RobotConfig:
 
 
         if not self._send_data([96, 0, initflags["min_thrust"],
-             initflags["max_thrust"]], BRODCAST_CHANNEL, SLAVE_INDEX):
+             initflags["max_thrust"]], BRODCAST_CHANNEL):
 
             time.sleep(1)
             return False

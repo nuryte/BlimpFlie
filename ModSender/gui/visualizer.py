@@ -218,12 +218,14 @@ class SensorGUI:
 
 
 if __name__ == "__main__":
-    mygui = SensorGUI(True)
+    mygui1 = SensorGUI(True)
+    mygui2 = SensorGUI(True)
 
     # Test plotting with increasing numbers
     for i in range(100):
-        mygui.update_interface(i*2*pi/100, pi*random()/6, i*0.2, 0)
-        mygui.sleep()
+        mygui1.update_interface(i*2*pi/100, pi*random()/6, i*0.2, 0, 0)
+        mygui2.update_interface(i * 2 * pi / 100, pi * random() / 6, i * 0.2, 0, 0)
+        mygui1.sleep()
 
     plt.ioff()
     plt.show()
