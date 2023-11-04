@@ -20,6 +20,7 @@ LIST_OF_MAC_ADDRESS = [
     # "48:27:E2:E6:E4:0C", #10 Big Wall
     # "48:27:E2:E6:E1:00", #11 david
     "48:27:E2:E6:E6:44", #12 Leo
+    "34:85:18:91:20:A8", #small blended bicopter
     # "34:85:18:91:CF:40", #13 test
 ]
 MASTER_MAC = "34:85:18:91:49:C0"

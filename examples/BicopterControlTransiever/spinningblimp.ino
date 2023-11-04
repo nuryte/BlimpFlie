@@ -31,9 +31,9 @@ void SpinniggetOutputs(controller_t *controls, sensors_t *sensors, actuation_t *
 
   out->s1 = 0;
   out->s2 = 0;
-  out->m1 = clamp(f1, 0, 1);
-  out->m2 = clamp(f2, 0, 1);
-  
+  out->m1 = clamp(sf1, 0, 1);
+  out->m2 = clamp(sf2, 0, 1);
+
   if (out->m1 < 0.02f)
   {
     out->s1 = 0.5f;

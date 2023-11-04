@@ -313,7 +313,7 @@ void loop() {
         } else if ((init_flags.spinning == 2)){
             // Calls the blendedbicopter.ino file for the modified
             // spinning blimp + bicopter getOutputs function
-            blendedgetOutputs(&controls, &sensors, &outputs);
+            BlendedgetOutputs(&controls, &sensors, &outputs);
         } else {
             // 180 degree servo getOutputs
             getOutputs(&controls, &sensors, &outputs);

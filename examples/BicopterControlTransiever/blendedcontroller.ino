@@ -1,5 +1,5 @@
 // creates the output values used for actuation from the control values
-void blendedgetOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
+void BlendedgetOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
 {
   // Bicopter control
   

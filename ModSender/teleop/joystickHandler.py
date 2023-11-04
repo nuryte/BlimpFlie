@@ -78,7 +78,6 @@ class JoystickHandler:
         self.fz = self.fz + -1* self.left_vertical * dt if self.b_state else 0
         # Z in range
         self.fz = min(max(self.fz, MIN_Z), MAX_Z)
-
         if self.yaw_sensor_enabled:
             # self.tz += -.1 * self.right_horizontal
 
@@ -114,9 +113,6 @@ class JoystickHandler:
         self.update_joy_params()
         if self.blimp_type == "bicopter":
             return self.get_bicopter_controls(), self.y_state
-        elif self.x_state == 1:
-            print("spinning")
-            return self.get_spinning_controls(), self.y_state
 
 
         
