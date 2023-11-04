@@ -32,24 +32,8 @@ sensor_guis = [SensorGUI(GUI_ENABLED,robConfig=robConfig) for robConfig in robot
 # Send flags to each robot
 for robConfig in robotConfigs:
     # Set configs for all slave indexes that you want to use
-    # Bicopter basic contains configs for a robot with no feedback
-    print("Connecing to robot %d: "%robConfig.slave_index, robConfig.mac)
-    active = robConfig.sendAllFlags(BRODCAST_CHANNEL, ROBOT_JASON)
-    if not active:
-        quit()
-
-    robConfig.sendAllFlags(BRODCAST_CHANNEL,  ROBOT_JASON)  # Redundant sent.
-
-
-    if YAW_SENSOR:
-        robConfig.startBNO(BRODCAST_CHANNEL)  # Configure IMU
-
-    if Z_SENSOR:
-        robConfig.startBaro(BRODCAST_CHANNEL)  # Configure Barometer
-
-
-    robConfig.startThrustRange(BRODCAST_CHANNEL, "bicopterbasic")  # Motor specifications
-    robConfig.startTranseiver(BRODCAST_CHANNEL, MASTER_MAC)  # Start communication
+    print("Connecting to robot %d: "%robConfig.slave_index, robConfig.mac)
+    robConfig.initialize_system()
 
 
 # Autonomous Behavior
@@ -75,14 +59,9 @@ try:
                 joyhandler.tz = des_yaw  # Yaw control
 
 
-            #
-            #
-            # if (i==1):
-            #     print(feedback)
-
             # Display sensors and output
             sensor_guis[i].update_interface(feedback[1], outputs[6], feedback[0], outputs[3], feedback[2])  # display sensor data
-            print(feedback)
+
             # Send message to all robots
             esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, robotConfig.slave_index)  # send control command to robot
 

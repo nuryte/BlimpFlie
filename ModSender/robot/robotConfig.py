@@ -12,8 +12,7 @@ class RobotConfig:
         self.config_file = "config/" + mac_address.replace(":", "")[-4:] + ".json"
 
         self.esp_now = esp_now
-        with open(self.config_file, 'r') as f:
-            self.configs = json.load(f)
+
 
     def get_config(self, CONFIG_INDEX):
         return self.configs.get(str(CONFIG_INDEX), {'feedbackPD': {}, 'weights': {}, 'initflags': {}, 'hardware': {}})
@@ -200,7 +199,7 @@ class RobotConfig:
 
         return yaw_enabled,z_endabled
 
-    def InicializationSystem(self):
+    def initialize_system(self):
         # Set configs for all slave indexes that you want to use
 
         with open(self.config_file, 'r') as f:
@@ -210,12 +209,14 @@ class RobotConfig:
         active = self.sendAllFlags(BRODCAST_CHANNEL, ROBOT_JASON)
         if not active:
             quit()
+
         self.sendAllFlags(BRODCAST_CHANNEL, ROBOT_JASON)  # Redundant sent.
         # robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 
-        YAW_SENSOR, Z_SENSOR = self.getFeedbackParams(ROBOT_JASON)
+        # YAW_SENSOR, Z_SENSOR = self.getFeedbackParams(ROBOT_JASON)
 
-
+        YAW_SENSOR = True
+        Z_SENSOR = True
 
         if YAW_SENSOR:
             self.startBNO(BRODCAST_CHANNEL)  # Configure IMU

@@ -194,7 +194,7 @@ class SensorGUI:
         plt.draw()
 
     def on_button_click(self, event):
-        self.robConfig.InicializationSystem()
+        self.robConfig.initialize_system()
         print("Restart")
 
     def on_toggle_click(self, label):
