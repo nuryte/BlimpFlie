@@ -69,7 +69,7 @@ class JoystickHandler:
             val = self.joystick.get_axis(idx)
             setattr(self, axis, val if abs(val) > 0.1 else 0)
 
-    def get_bicopter_controls(self, base_yaw = 0, base_height = 0):
+    def get_bicopter_controls(self, base_yaw = 0, base_height = 0, yaw_mode = 0):
         """Return controls for bicopter."""
         dt = time.time() - self.time_start
         self.time_start = time.time()
@@ -80,7 +80,7 @@ class JoystickHandler:
         # Z in range
         self.fz = min(max(self.fz, MIN_Z), MAX_Z)
 
-        if self.yaw_sensor_enabled:
+        if self.yaw_sensor_enabled and yaw_mode == 1:
             # self.tz += -.1 * self.right_horizontal
 
             des_yaw = atan2(-self.right_vertical, self.right_horizontal)
@@ -90,6 +90,8 @@ class JoystickHandler:
                 self.tz = des_yaw
             if not self.b_state:
                 self.tz = base_yaw
+        elif self.yaw_sensor_enabled and yaw_mode == 0:
+            self.tz += -1 * self.right_horizontal*dt if self.b_state else base_yaw
         else:
             self.tz = -1 * self.right_horizontal
 
@@ -99,11 +101,11 @@ class JoystickHandler:
         """Return controls for sblimp."""
         return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    def get_outputs(self, base_yaw = 0, base_height = 0):
+    def get_outputs(self, base_yaw = 0, base_height = 0, yaw_mode = 0):
         """Get the output controls based on blimp type."""
         self.update_joy_params()
         if self.blimp_type == "bicopter":
-            return self.get_bicopter_controls(base_yaw,base_height), self.y_state, self.a_state
+            return self.get_bicopter_controls(base_yaw,base_height,yaw_mode), self.y_state, self.a_state
 
         
 

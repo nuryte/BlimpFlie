@@ -37,7 +37,8 @@ a_pressed = False
 try:
     while not y_pressed:
         feedback = esp_now.getFeedback(1)  # get sensor data from robot
-        outputs, y_pressed,a_pressed = joyhandler.get_outputs(base_yaw=feedback[1])  # get joystick input
+        outputs, y_pressed,a_pressed = joyhandler.get_outputs(base_yaw=feedback[1],base_height=feedback[0], yaw_mode = 1)  # get joystick input
+        outputs[8] = a_pressed
         # outputs = [0]*13
         # print(feedback)
         '''
