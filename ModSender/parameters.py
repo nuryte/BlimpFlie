@@ -19,9 +19,9 @@ LIST_OF_MAC_ADDRESS = [
     # "34:85:18:91:24:F0", #9
     # "48:27:E2:E6:E4:0C", #10 Big Wall
     # "48:27:E2:E6:E1:00", #11 david
-    "48:27:E2:E6:E6:44", #12 Leo
-    "34:85:18:91:20:A8", #small blended bicopter
-    # "34:85:18:91:CF:40", #13 test
+    # "48:27:E2:E6:E6:44", #12 spinning blimp 1
+    "34:85:18:91:B7:4C", #13 spinning blimp 2
+    # "34:85:18:91:20:A8", #small blended bicopter
 ]
 MASTER_MAC = "34:85:18:91:49:C0"
 SLAVE_INDEX = 0 #-1 means broadcast

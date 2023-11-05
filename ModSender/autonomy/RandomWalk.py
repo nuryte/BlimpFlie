@@ -9,7 +9,7 @@ from autonomy.Autonomous import Autonomous
 
 class RandomWalk(Autonomous):
 
-    def __init__(self, forward_force=0.3, min_distance=400, des_z=5):
+    def __init__(self, forward_force=0.15, min_distance=400, des_z=7):
         # Constants
         self.forward_force = forward_force
         self.min_distance = min_distance

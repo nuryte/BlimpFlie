@@ -1,6 +1,6 @@
 #include "modBlimp.h"
 #include "BNO85.h"
-#include "baro390.h"
+#include "baro280.h"
 #include "GY_US42V2.h"  // Include the header file
 
 // #include "BNO55.h"
@@ -10,7 +10,7 @@
 
 ModBlimp blimp;
 BNO85 bno;
-baro390 baro;
+baro280 baro;
 GY_US42V2 sonar_sensor;  // Create an instance of the GY_US42V2 class
 
 
@@ -36,14 +36,14 @@ flags to be used in the init
 init_flags_t init_flags = {
   .verbose = false,
   .sensors = false,
-  .escarm = false,
+  .escarm = true,
   .calibrate_esc = false,
   .UDP = false,
   .Ibus = false,
   .ESPNOW = true,
   .servo = false,
   .PORT = 1345,
-  .motor_type = 1,
+  .motor_type = 0,
   .mode = 2,
   .control = 0,
   .spinning = 1,
@@ -559,6 +559,11 @@ void addFeedback(controller_t *controls, sensors_t *sensors) {
         e_yaw = atan2(sin(e_yaw), cos(e_yaw));
         // PD for yaw control
         controls->tz = e_yaw * PDterms->kpyaw - sensors->yawrate*PDterms->kdyaw;
+
+        // Debug the yaw
+        if (init_flags.spinning == 1){
+            s_yaw = sensors->yaw;
+        }
 
     }
 
