@@ -41,7 +41,6 @@ class JoystickHandler:
         pygame.joystick.init()
         while pygame.joystick.get_count() == 0:
             print("No controller Connected")
-            quit()
         pygame.display.init()
         self.joystick = pygame.joystick.Joystick(self.joy_index)
         self.joystick.init()
@@ -69,18 +68,17 @@ class JoystickHandler:
             val = self.joystick.get_axis(idx)
             setattr(self, axis, val if abs(val) > 0.1 else 0)
 
-    def get_bicopter_controls(self, base_yaw=0, base_height=0, yaw_mode=0):
+    def get_bicopter_controls(self):
         """Return controls for bicopter."""
         dt = time.time() - self.time_start
         self.time_start = time.time()
 
         # self.fx = -1 * self.right_vertical
-        self.fx = (self.right_trigger + 1)/2 - (self.left_trigger + 1) / 2
-        self.fz = self.fz + -1* self.left_vertical * dt if self.b_state else base_height
+        self.fx = (self.right_trigger + 1)/2 - (self.left_trigger + 1)/2
+        self.fz = self.fz + -1* self.left_vertical * dt if self.b_state else 0
         # Z in range
         self.fz = min(max(self.fz, MIN_Z), MAX_Z)
-
-        if self.yaw_sensor_enabled and yaw_mode == 1:
+        if self.yaw_sensor_enabled:
             # self.tz += -.1 * self.right_horizontal
 
             des_yaw = atan2(-self.right_vertical, self.right_horizontal)
@@ -88,12 +86,6 @@ class JoystickHandler:
 
             if magnitude > 0.2:
                 self.tz = des_yaw
-
-            if not self.b_state:
-                self.tz = base_yaw
-
-        elif self.yaw_sensor_enabled and yaw_mode == 0:
-            self.tz += -1 * self.right_horizontal*dt if self.b_state else base_yaw
         else:
             self.tz = -1 * self.right_horizontal
 
@@ -116,11 +108,11 @@ class JoystickHandler:
 
         return [int(self.b_state), self.fx, self.fy, self.fz, self.tx, self.ty, self.tz, 0, int(self.x_state), 0, 0, 0, 0]
 
-    def get_outputs(self, base_yaw=0, base_height=0, yaw_mode=0):
+    def get_outputs(self):
         """Get the output controls based on blimp type."""
         self.update_joy_params()
         if self.blimp_type == "bicopter":
-            return self.get_bicopter_controls(base_yaw, base_height, yaw_mode), self.y_state, self.a_state
+            return self.get_bicopter_controls(), self.y_state
 
 
         

@@ -32,7 +32,7 @@ class RandomWalk(Autonomous):
 
     def _choose_action(self, feedback):
         # Variables to make decisions
-        distance = feedback[2]  # Distance from the sonar
+        distance = feedback[5]  # Distance from the sonar
         time_elapsed = self._time_elapsed()
 
         # ---------- Switch actions based on timer and distance -----------
