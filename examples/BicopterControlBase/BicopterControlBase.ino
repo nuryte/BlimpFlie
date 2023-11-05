@@ -17,8 +17,19 @@ IBusBM IBus;
 
 
 robot_specs_s robot_specs = {
-        .min_thrust = 1000,
+        .min_thrust = 1050,
         .max_thrust = 2000,
+};
+
+
+nicla_tuning_s nicla_tuning = {
+        .goal_theta_back = 0,
+        .goal_theta_front = 3.14,
+        .goal_dist_thresh = 0,
+        .max_move_x = 0.4,
+        .goal_ratio = 0.5,
+        .yaw_move_threshold = 0.2
+        
 };
 
 /*
@@ -264,7 +275,7 @@ void loop() {
     return; //changes outputs using the old format
   } else if ((int)(flag/10) == 1 or (int)(flag/10) == 9){ //flag in 10, or 90
     //set FLAGS for other stuff
-    setPDflags(&init_flags, PDterms,&weights, &raws, &rollPitchAdjust);
+    setPDflags(&init_flags, PDterms,&weights, &raws, &rollPitchAdjust, &nicla_tuning);
     outputs.m1 = 0;
     outputs.m2 = 0;
     outputs.s1 = 0;
@@ -294,7 +305,7 @@ void loop() {
     actionFlag = (int)raws.data[7]; // for the spinning blimp switch states
 
     if (actionFlag == 1){// nicla controller
-      addNiclaControl(&controls, &sensors, &blimp);
+      addNiclaControl(&controls, &sensors, &blimp, &nicla_tuning);
     } else if (actionFlag == 2) { //random walk
       actionFlag = 0;// put random walk here
     } else if (actionFlag == 3) { // full control flow
@@ -332,13 +343,13 @@ void loop() {
     Serial.print(',');
     Serial.print(battery_level);
     Serial.print(',');
-    Serial.print(espSendData1.values[2]);
+    Serial.print(espSendData2.values[0]);
     Serial.print(',');
-    Serial.print(espSendData1.values[3]);
+    Serial.print(espSendData2.values[1]);
     Serial.print(',');
-    Serial.print(espSendData1.values[4]);
+    Serial.print(espSendData2.values[2]);
     Serial.print(',');
-    Serial.println(espSendData1.values[5]);
+    Serial.println(espSendData2.values[3]);
     counter2 = 0;
     if (transceiverEnabled){
       
@@ -353,10 +364,10 @@ void loop() {
       espSendData1.values[5] = outputs.s2;
       blimp.send_esp_feedback(transceiverAddress, &espSendData1);
       espSendData2.flag = 2;
-      espSendData2.values[0] = (float)blimp.IBus.readChannel(0);
-      espSendData2.values[1] = (float)blimp.IBus.readChannel(1);
-      espSendData2.values[2] = (float)blimp.IBus.readChannel(2);
-      espSendData2.values[3] = (float)blimp.IBus.readChannel(3);
+      espSendData2.values[0] = (float)blimp.IBus.readChannel(1);
+      espSendData2.values[1] = (float)blimp.IBus.readChannel(2);
+      espSendData2.values[2] = (float)blimp.IBus.readChannel(7);
+      espSendData2.values[3] = (float)blimp.IBus.readChannel(8);
       espSendData2.values[4] = controls.tz;
       espSendData2.values[5] = battery_level;
       blimp.send_esp_feedback(transceiverAddress, &espSendData2);

@@ -13,7 +13,7 @@ class RobotConfig:
             self.configs = json.load(f)
 
     def get_config(self, CONFIG_INDEX):
-        return self.configs.get(str(CONFIG_INDEX), {'feedbackPD': {}, 'weights': {}, 'initflags': {}, 'hardware': {}})
+        return self.configs.get(str(CONFIG_INDEX), {'feedbackPD': {}, 'weights': {}, 'initflags': {}, 'hardware': {}, 'nicla': {}})
     
     def _fill_with_zeros(self, data, size=13):
         """Fill the given list with zeros until it reaches the specified size."""
@@ -41,6 +41,7 @@ class RobotConfig:
         feedbackPD = config['feedbackPD']
         weights = config['weights']
         hardware = config['hardware']
+        nicla = config['nicla']
         
 
         data_sets = [
@@ -101,7 +102,14 @@ class RobotConfig:
              hardware["kf1"],
              hardware["kf2"],
              hardware["maxRadsYaw"],
-             hardware["fxyawScale"]]
+             hardware["fxyawScale"]],
+             [95, 0, 
+             nicla["goal_theta_back"], 
+             nicla["goal_theta_front"], 
+             nicla["goal_dist_thresh"],
+             nicla["max_move_x"],
+             nicla["goal_ratio"],
+             nicla["yaw_move_threshold"]]
         ]
 
         for data in data_sets:

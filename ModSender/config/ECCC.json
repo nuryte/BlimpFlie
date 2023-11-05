@@ -1,6 +1,6 @@
 {
     "bicopterbasic": {
-        "feedbackPD" : { "roll" : 0,
+        "feedbackPD" : { "roll" : 1,
                         "pitch" : 1,
                         "yaw" : 1,
                         "x" : 0,
@@ -11,7 +11,7 @@
                         "Croll" : 1,
                         "Cpitch" : 0, 
                         "Cyaw" : 1,
-                        "Cx" : 0.3,
+                        "Cx" : 0.15,
                         "Cy" : 0,
                         "Cz" : 1,
                         "Cabsz" : 1,
@@ -20,20 +20,20 @@
                         "kdroll" : 0,
                         "kppitch" : 0,
                         "kdpitch" : 0,
-                        "kpyaw" : -0.7,
-                        "kdyaw" : -0.09,
+                        "kpyaw" : -2.0,
+                        "kdyaw" : -0.02,
 
                         "kpx" : 0,
                         "kdx" : 0,
                         "kpy" : 0,
                         "kdy" : 0,
                         "kpz" : 0.4,
-                        "kdz" : 0.3,
+                        "kdz" : 0.4,
                         "kiz" : 0.03,
 
-                        "kiyaw": 0,
-                        "kiyawrate" : -0.1,
-                        "yawRateIntegralRange"  : 20,
+                        "kiyaw": -1.0,
+                        "kiyawrate" : -1,
+                        "yawRateIntegralRange"  : 200,
 
                         "integral_dt" : 0,
                         "z_int_low" : 0,
@@ -46,15 +46,15 @@
                         "rollOffset" : 3.14,
                         "rollPitchSwitch" : 0,
 
-                        "servo1offset" : 0.0,
-                        "servo2offset" : 0.25
+                        "servo1offset" : 0.1,
+                        "servo2offset" : 0.1
                         },
         "weights": { "eulerGamma" : 0,
-                    "rollRateGamma" : 0.7,
+                    "rollRateGamma" : 0.5,
                     "yawRateGamma" : 0.9,
                     "pitchRateGamma" : 0.7,
-                    "zGamma" : 0.8,
-                    "vzGamma" : 0.9
+                    "zGamma" : 0.5,
+                    "vzGamma" : 0.5
                     },
         "initflags": {
                     "_comment": "flags to be used in the init", 
@@ -78,12 +78,20 @@
                     "max_thrust": 2000
                     },
         "hardware": {
-            "kf1": 1.2,
+            "kf1": 1.4,
             "kf2": 1,
             "maxRadsYaw" : 0.07,
             "fxyawScale" : 0.2,
             "yawScaleEnable" : 0
 
+        },
+        "nicla": {
+            "goal_theta_back": 0,
+            "goal_theta_front": 3.14,
+            "goal_dist_thresh" : 0,
+            "max_move_x" : 0.4,
+            "goal_ratio" : 0.8,
+            "yaw_move_threshold" : 0.3
         }
     }
 }
