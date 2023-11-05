@@ -3,15 +3,24 @@ Author       : Hanqing Qi
 Date         : 2023-10-24 16:30:43
 LastEditors  : Hanqing Qi
 LastEditTime : 2023-10-24 19:45:46
-FilePath     : /ModSender/simpleGUI.py
+FilePath     : /ModSender/visualizer.py
 Description  : Simple GUI for ModSender
 """
+import time
+from math import pi
+from random import random
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-class SimpleGUI:
-    def __init__(self):
+class SensorGUI:
+    def __init__(self, enable_gui=True):
+        self.enable_gui = enable_gui
+
+        if not enable_gui:
+            return
+
         # Plotting initialization
         plt.ion()
 
@@ -20,7 +29,7 @@ class SimpleGUI:
         self.fig.patch.set_facecolor("black")
         self.ax.set_facecolor("black")
 
-        self.ax.set_xlim(-1.1, 2.1)
+        self.ax.set_xlim(-1.1, 3)
         self.ax.set_ylim(-1.1, 1.5)
         self.ax.set_aspect("equal", "box")
         self.circle = plt.Circle((0, 0), 1, fill=False, color="white", linewidth=2)
@@ -40,6 +49,10 @@ class SimpleGUI:
             1.4, 0, bar_width, color="g", bottom=bar_bottom
         )
 
+        self.distance_bar = self.ax.bar(
+            2.4, 0.3, bar_width, color="b", bottom=bar_bottom
+        )
+
         self.current_yaw = self.ax.arrow(
             0, 0, 0, 0, head_width=0.1, head_length=0.1, fc="r", ec="r", linewidth=3
         )
@@ -49,6 +62,7 @@ class SimpleGUI:
 
         self.current_yaw_value = self.ax.text(-0.4, 1.1, "", fontsize=12, color="white")
         self.desired_yaw_value = self.ax.text(-0.4, 1.3, "", fontsize=12, color="white")
+        self.distance_value = self.ax.text(-0.4, 1.5, "", fontsize=12, color="white")
 
         self.current_height_value = self.ax.text(
             1.6, -1.1, "", fontsize=12, color="white"
@@ -56,11 +70,13 @@ class SimpleGUI:
         self.desired_height_value = self.ax.text(
             1.2, -1.1, "", fontsize=12, color="white"
         )
+        self.distance_value = self.ax.text(
+            2.0, -1.1, "", fontsize=12, color="white"
+        )
 
-        hight_label = self.ax.text(1.4, -1.2, "Height", fontsize=12, color="white")
+        height_label = self.ax.text(1.4, -1.2, "Height", fontsize=12, color="white")
         yaw_label = self.ax.text(-0.1, -1.2, "Yaw", fontsize=12, color="white")
-
-        # plt.show()
+        distance_label = self.ax.text(2.2, -1.2, "Distance", fontsize=12, color="white")
 
     def _angle_to_coordinates(self, radians: float, radius: float = 1.0) -> tuple:
         """
@@ -75,7 +91,7 @@ class SimpleGUI:
         return x, y
 
     def update_interface(
-        self, cur_yaw: float, des_yaw: float, cur_height: float, des_height: float
+        self, cur_yaw: float, des_yaw: float, cur_height: float, des_height: float, distance: float
     ) -> None:
         """
         @description: Update the gui interface
@@ -86,6 +102,9 @@ class SimpleGUI:
         @param       {float} des_height: Desired value of height from the controller
         @return      {*} None
         """
+        if not self.enable_gui:
+            return
+
         cur_x, cur_y = self._angle_to_coordinates(cur_yaw)
         des_x, des_y = self._angle_to_coordinates(des_yaw)
 
@@ -118,6 +137,7 @@ class SimpleGUI:
 
         self.cur_height_bar[0].set_height(cur_height / 10 if cur_height > 0 else 0)
         self.des_height_bar[0].set_height(des_height / 10 if des_height > 0 else 0)
+        self.distance_bar[0].set_height(distance / 300 if distance > 0 else 0)
 
         self.current_yaw_value.set_text(
             f"Current: {(cur_yaw % (2*np.pi)) / np.pi * 180:.2f}˚"
@@ -135,27 +155,43 @@ class SimpleGUI:
         self.desired_height_value.set_position((1.2, max(des_height / 10 - 0.9, -0.9)))
         self.desired_height_value.set_color("g")  # Setting the text color to green
 
+        # Display height text
         self.current_height_value.set_text(
             f"C{cur_height if cur_height > 0 else 0:.2f}"
         )
-        self.current_height_value.set_position((1.6, max(cur_height / 10 - 0.9, -0.9)))
+        self.current_height_value.set_position((1.6, max(cur_height / 10 - 0.9, -0.8)))
         self.current_height_value.set_color("r")  # Setting the text color to red
+
+        # Display distance value
+        self.distance_value.set_text("{:06d}".format(int(distance)))
+            #f"{distance if distance > 0 else 0:10.2f}"        )
+        self.distance_value.set_position((2.2,-1.4))
+        self.distance_value.set_color("b")  # Setting the text color to red
+
+
+
 
         plt.draw()
 
 
+    def sleep(self, delay=0.05):
+        """
+        Wait using plt
+        :param delay: time to wait
+        """
+        if self.enable_gui:
+            plt.pause(delay)
+        else:
+            time.sleep(delay)
+
 
 if __name__ == "__main__":
-    mygui = SimpleGUI()
+    mygui = SensorGUI(True)
 
-    # while True:
-    #     # outputs, y = joyhandler.get_outputs()
-    #     # outputs = [0]*13
-    #     # feedback = esp_now.getFeedback(1)
-    #     # mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])
-    #
-    #     mygui.update_interface(0,0,0,0)
-    #     # esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
-    #     # print(feedback)
-    #
-    #     time.sleep(0.1)
+    # Test plotting with increasing numbers
+    for i in range(100):
+        mygui.update_interface(i*2*pi/100, pi*random()/6, i*0.2, 0)
+        mygui.sleep()
+
+    plt.ioff()
+    plt.show()

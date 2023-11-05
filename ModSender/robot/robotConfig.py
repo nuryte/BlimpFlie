@@ -8,7 +8,7 @@ class RobotConfig:
             self.configs = json.load(f)
 
     def get_config(self, CONFIG_INDEX):
-        return self.configs.get(str(CONFIG_INDEX), {'feedbackPD': {}, 'weights': {}, 'initflags': {}, 'hardware': {}})
+        return self.configs.get(str(CONFIG_INDEX), {'feedbackPD': {}, 'weights': {}, 'initflags': {}})
     
     def _fill_with_zeros(self, data, size=13):
         """Fill the given list with zeros until it reaches the specified size."""
@@ -35,7 +35,6 @@ class RobotConfig:
         config = self.get_config(CONFIG_INDEX)
         feedbackPD = config['feedbackPD']
         weights = config['weights']
-        hardware = config['hardware']
         
 
         data_sets = [
@@ -61,10 +60,7 @@ class RobotConfig:
              feedbackPD["kppitch"],
              feedbackPD["kdpitch"], 
              feedbackPD["kpyaw"], 
-             feedbackPD["kdyaw"],
-             feedbackPD["kiyaw"], 
-             feedbackPD["kiyawrate"], 
-             feedbackPD["yawRateIntegralRange"]],
+             feedbackPD["kdyaw"]],
             [13, 0, 
              feedbackPD["kpx"], 
              feedbackPD["kdx"], 
@@ -83,8 +79,7 @@ class RobotConfig:
              weights["pitchRateGamma"],
              weights["yawRateGamma"], 
              weights["zGamma"], 
-             weights["vzGamma"],
-             hardware["yawScaleEnable"]],
+             weights["vzGamma"]],
             [15, 0, 
              feedbackPD["kiz"], 
              feedbackPD["integral_dt"], 
@@ -92,11 +87,7 @@ class RobotConfig:
              feedbackPD["z_int_high"], 
              feedbackPD["servo1offset"], 
              feedbackPD["servo2offset"],
-             feedbackPD["rollPitchSwitch"],
-             hardware["kf1"],
-             hardware["kf2"],
-             hardware["maxRadsYaw"],
-             hardware["fxyawScale"]]
+             feedbackPD["rollPitchSwitch"]]
         ]
 
         for data in data_sets:
@@ -130,6 +121,7 @@ class RobotConfig:
              ]]
         
         for data in data_sets:
+            time.sleep(.1)
             if not self._send_data(data, BRODCAST_CHANNEL, SLAVE_INDEX):
                 return False
 
@@ -164,3 +156,30 @@ class RobotConfig:
             time.sleep(1)
             return False
         time.sleep(1)
+
+    def startThrustRange(self,BRODCAST_CHANNEL, SLAVE_INDEX, CONFIG_INDEX):
+        time.sleep(0.1)
+        # Fetch the feedbackPD and weights for the given CONFIG_INDEX
+        config = self.get_config(CONFIG_INDEX)
+
+        initflags = config['initflags']
+
+
+        if not self._send_data([96, 0, initflags["min_thrust"],
+             initflags["max_thrust"]], BRODCAST_CHANNEL, SLAVE_INDEX):
+
+            time.sleep(1)
+            return False
+        time.sleep(1)
+
+
+    def getFeedbackParams(self,CONFIG_INDEX):
+        # Fetch the feedbackPD and weights for the given CONFIG_INDEX
+        config = self.get_config(CONFIG_INDEX)
+        feedbackPD = config['feedbackPD']
+
+        yaw_enabled = feedbackPD["yaw"]
+        z_endabled = feedbackPD["z"]
+
+        return yaw_enabled,z_endabled
+
