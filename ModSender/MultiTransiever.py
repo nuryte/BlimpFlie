@@ -46,8 +46,8 @@ y_pressed = False
 try:
     while not y_pressed:
         outputs, y_pressed, a_key_pressed = joyhandler.get_outputs()  # get joystick input
-        # outputs = [0]*13
 
+        # For each robot
         for i, robotConfig in enumerate(robotConfigs):
             feedback = esp_now.getFeedback(i)  # get sensor data from robot
 

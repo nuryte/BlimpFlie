@@ -141,7 +141,7 @@ class RobotConfig:
             if not self._send_data(data, BRODCAST_CHANNEL):
                 return False
 
-        print("All inits Sent on ", SLAVE_INDEX, " for ", CONFIG_INDEX)
+        print("All inits Sent on ", self.slave_index, " for ", CONFIG_INDEX)
         return True
     
     def startBNO(self, BRODCAST_CHANNEL):
@@ -211,18 +211,11 @@ class RobotConfig:
             quit()
 
         self.sendAllFlags(BRODCAST_CHANNEL, ROBOT_JASON)  # Redundant sent.
-        # robConfig.sendSetupFlags(BRODCAST_CHANNEL, SLAVE_INDEX, "bicopterbasic")
 
-        # YAW_SENSOR, Z_SENSOR = self.getFeedbackParams(ROBOT_JASON)
+        # Configure sensors
+        self.startBNO(BRODCAST_CHANNEL)  # Configure IMU
+        self.startBaro(BRODCAST_CHANNEL)  # Configure Barometer
 
-        YAW_SENSOR = True
-        Z_SENSOR = True
-
-        if YAW_SENSOR:
-            self.startBNO(BRODCAST_CHANNEL)  # Configure IMU
-
-        if Z_SENSOR:
-            self.startBaro(BRODCAST_CHANNEL)  # Configure Barometer
 
         self.startThrustRange(BRODCAST_CHANNEL, "bicopterbasic")  # Motor specifications
         self.startTranseiver(BRODCAST_CHANNEL, MASTER_MAC)  # Start communication
