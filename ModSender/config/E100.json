@@ -78,7 +78,7 @@
                     "max_thrust": 2000
                     },
         "hardware": {
-            "kf1": 1.2,
+            "kf1": 1,
             "kf2": 1,
             "maxRadsYaw" : 0.07,
             "fxyawScale" : 0.2,
