@@ -29,7 +29,7 @@ MASTER_MAC = "C0:49:EF:E3:34:78"
 BRODCAST_CHANNEL = 1 # SLAVE_INDEX will override this value if SLAVE_INDEX is not -1
 
 
-
+JOYSTICK_YAW_MODE = 1
 GUI_ENABLED = True
 
 
