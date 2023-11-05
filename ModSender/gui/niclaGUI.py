@@ -3,30 +3,17 @@ Author       : Hanqing Qi
 Date         : 2023-10-24 16:30:43
 LastEditors  : Hanqing Qi
 LastEditTime : 2023-10-24 19:45:46
-FilePath     : /ModSender/visualizer.py
+FilePath     : /ModSender/simpleGUI.py
 Description  : Simple GUI for ModSender
 """
-import time
-from math import pi
-from random import random
-
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import numpy as np
+import time
 
-import matplotlib.widgets as widgets
 
-
-class SensorGUI:
-    def __init__(self, enable_gui=True, esp_now=None, robConfig = None):
-        self.enable_gui = enable_gui
-
-        # To modify from esp_now and robConfig
-        self.esp_now = esp_now
-        self.robConfig = robConfig
-
-        if not enable_gui:
-            return
-
+class SimpleGUI:
+    def __init__(self):
         # Plotting initialization
         plt.ion()
 
@@ -35,7 +22,7 @@ class SensorGUI:
         self.fig.patch.set_facecolor("black")
         self.ax.set_facecolor("black")
 
-        self.ax.set_xlim(-1.1, 3)
+        self.ax.set_xlim(-1.1, 2.1)
         self.ax.set_ylim(-1.1, 1.5)
         self.ax.set_aspect("equal", "box")
         self.circle = plt.Circle((0, 0), 1, fill=False, color="white", linewidth=2)
@@ -55,10 +42,6 @@ class SensorGUI:
             1.4, 0, bar_width, color="g", bottom=bar_bottom
         )
 
-        self.distance_bar = self.ax.bar(
-            2.4, 0.3, bar_width, color="b", bottom=bar_bottom
-        )
-
         self.current_yaw = self.ax.arrow(
             0, 0, 0, 0, head_width=0.1, head_length=0.1, fc="r", ec="r", linewidth=3
         )
@@ -68,7 +51,6 @@ class SensorGUI:
 
         self.current_yaw_value = self.ax.text(-0.4, 1.1, "", fontsize=12, color="white")
         self.desired_yaw_value = self.ax.text(-0.4, 1.3, "", fontsize=12, color="white")
-        self.distance_value = self.ax.text(-0.4, 1.5, "", fontsize=12, color="white")
 
         self.current_height_value = self.ax.text(
             1.6, -1.1, "", fontsize=12, color="white"
@@ -76,30 +58,34 @@ class SensorGUI:
         self.desired_height_value = self.ax.text(
             1.2, -1.1, "", fontsize=12, color="white"
         )
-        self.distance_value = self.ax.text(
-            2.0, -1.1, "", fontsize=12, color="white"
-        )
 
-        height_label = self.ax.text(1.4, -1.2, "Height", fontsize=12, color="white")
+        hight_label = self.ax.text(1.4, -1.2, "Height", fontsize=12, color="white")
         yaw_label = self.ax.text(-0.1, -1.2, "Yaw", fontsize=12, color="white")
-        distance_label = self.ax.text(2.2, -1.2, "Distance", fontsize=12, color="white")
-
-
-        ### Buttons
-        self.button_ax = plt.axes([0.5, 0.9, 0.15, 0.05])  # Adjust the position and size of the button
-        self.button = widgets.Button(self.button_ax, 'Reconnect')
-        self.button.on_clicked(self.on_button_click)
-
-        ### Toggle Button
-        self.toggle_ax = plt.axes([0.65, 0.9, 0.15, 0.05])  # Adjust the position and size of the toggle button
-        self.toggle = widgets.CheckButtons(self.toggle_ax, ['Toggle'], [False])
-        self.toggle.on_clicked(self.on_toggle_click)
-
-        ### Case Selection Radio Buttons
-        self.radio_ax = plt.axes([0.8, 0.80, 0.15, 0.05*3])  # Adjust the position and size of the radio buttons
-        self.radio = widgets.RadioButtons(self.radio_ax, ['Case 1', 'Case 2', 'Case 3'], activecolor='red')
-        self.radio.on_clicked(self.on_radio_click)
-
+        # Adding an enclosing square for Nicla Detection visuals
+        self.enclosing_square = patches.Rectangle(
+            (0, 0),  # will be updated in update_interface
+            1,  # width w, will be updated in update_interface
+            1,  # height h, will be updated in update_interface
+            linewidth=1,
+            edgecolor='yellow',
+            facecolor='none',
+            zorder=4  # ensure it's drawn below the Nicla Detection visuals
+        )
+        self.ax.add_patch(self.enclosing_square)
+        # Adding the Nicla Detection Rectangle
+        self.nicla_rect = patches.Rectangle(
+            (0, 0),  # (x, y)
+            1,  # width w
+            1,  # height h
+            linewidth=1,
+            edgecolor='blue',
+            facecolor='none',
+            label='Nicla Detection',
+            zorder=3  # ensure it's drawn on top
+        )
+        self.ax.add_patch(self.nicla_rect)
+        
+        # plt.show()
 
     def _angle_to_coordinates(self, radians: float, radius: float = 1.0) -> tuple:
         """
@@ -114,20 +100,33 @@ class SensorGUI:
         return x, y
 
     def update_interface(
-        self, cur_yaw: float, des_yaw: float, cur_height: float, des_height: float, distance: float
+        self,
+        cur_yaw: float,
+        des_yaw: float,
+        cur_height: float,
+        des_height: float,
+        x: float = 3,
+        y: float = 3,
+        w: float = 6,
+        h: float = 6,
+        max_x: float = 240,
+        max_y: float = 160
     ) -> None:
         """
-        @description: Update the gui interface
+        @description: Update the GUI interface, including the Nicla Detection rectangle
         @param       {*} self: -
         @param       {float} cur_yaw: Current value of yaw
         @param       {float} des_yaw: Desired value of yaw from the controller
         @param       {float} cur_height: Current value of height
         @param       {float} des_height: Desired value of height from the controller
+        @param       {float} x: x-coordinate of the bottom left corner of the Nicla Detection rectangle
+        @param       {float} y: y-coordinate of the bottom left corner of the Nicla Detection rectangle
+        @param       {float} w: width of the Nicla Detection rectangle
+        @param       {float} h: height of the Nicla Detection rectangle
+        @param       {float} max_x: Maximum x-value for the axes
+        @param       {float} max_y: Maximum y-value for the axes
         @return      {*} None
         """
-        if not self.enable_gui:
-            return
-
         cur_x, cur_y = self._angle_to_coordinates(cur_yaw)
         des_x, des_y = self._angle_to_coordinates(des_yaw)
 
@@ -160,7 +159,6 @@ class SensorGUI:
 
         self.cur_height_bar[0].set_height(cur_height / 10 if cur_height > 0 else 0)
         self.des_height_bar[0].set_height(des_height / 10 if des_height > 0 else 0)
-        self.distance_bar[0].set_height(distance / 300 if distance > 0 else 0)
 
         self.current_yaw_value.set_text(
             f"Current: {(cur_yaw % (2*np.pi)) / np.pi * 180:.2f}˚"
@@ -178,54 +176,43 @@ class SensorGUI:
         self.desired_height_value.set_position((1.2, max(des_height / 10 - 0.9, -0.9)))
         self.desired_height_value.set_color("g")  # Setting the text color to green
 
-        # Display height text
         self.current_height_value.set_text(
             f"C{cur_height if cur_height > 0 else 0:.2f}"
         )
-        self.current_height_value.set_position((1.6, max(cur_height / 10 - 0.9, -0.8)))
+        self.current_height_value.set_position((1.6, max(cur_height / 10 - 0.9, -0.9)))
         self.current_height_value.set_color("r")  # Setting the text color to red
+        # Update the Nicla Detection rectangle and label
+        self.nicla_rect.set_xy(((x - w/2)/max_x, (y - h/2)/max_y))
+        self.nicla_rect.set_width(w/max_x)
+        self.nicla_rect.set_height(h/max_y)
+        
 
-        # Display distance value
-        self.distance_value.set_text("{:06d}".format(int(distance)))
-            #f"{distance if distance > 0 else 0:10.2f}"        )
-        self.distance_value.set_position((2.2,-1.4))
-        self.distance_value.set_color("b")  # Setting the text color to red
+        # Optionally, set axes limits
+        # self.ax.set_xlim(0, 1)
+        # self.ax.set_ylim(0, 1)
+
 
         plt.draw()
-
-    def on_button_click(self, event):
-        self.robConfig.initialize_system()
-        print("Restart")
-
-    def on_toggle_click(self, label):
-        print(f'Toggle {label} clicked.')
-        # You can add logic here to handle toggle actions
-
-    def on_radio_click(self, label):
-        print(f'Radio button {label} selected.')
-        # You can add logic here to handle radio button selection
-
-    def sleep(self, delay=0.05):
-        """
-        Wait using plt
-        :param delay: time to wait
-        """
-        if self.enable_gui:
-            plt.pause(delay)
-        else:
-            time.sleep(delay)
 
 
 
 if __name__ == "__main__":
-    mygui1 = SensorGUI(True)
-    mygui2 = SensorGUI(True)
-
-    # Test plotting with increasing numbers
-    for i in range(100):
-        mygui1.update_interface(i*2*pi/100, pi*random()/6, i*0.2, 0, i)
-        mygui2.update_interface(i * 2 * pi / 100, pi * random() / 6, i * 0.2, 0, i)
-        mygui1.sleep()
-
-    plt.ioff()
+    mygui = SimpleGUI()
     plt.show()
+    try:
+        while True:
+            mygui.update_interface(0,0,0,0)
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
+    # while True:
+    #     # outputs, y = joyhandler.get_outputs()
+    #     # outputs = [0]*13
+    #     # feedback = esp_now.getFeedback(1)
+    #     # mygui.update_interface(feedback[3], outputs[6], feedback[0], outputs[3])
+    #
+    #     mygui.update_interface(0,0,0,0)
+    #     # esp_now.send([21] + outputs[:-1], BRODCAST_CHANNEL, SLAVE_INDEX)
+    #     # print(feedback)
+    #
+    #     time.sleep(0.1)

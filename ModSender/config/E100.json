@@ -1,0 +1,89 @@
+{
+    "bicopterbasic": {
+        "feedbackPD" : { "roll" : 0,
+                        "pitch" : 0,
+                        "yaw" : 1,
+                        "x" : 0,
+                        "y" : 0,
+                        "z" : 1,
+                        "rotation" : 0,
+
+                        "Croll" : 1,
+                        "Cpitch" : 0, 
+                        "Cyaw" : 1,
+                        "Cx" : 0.5,
+                        "Cy" : 0,
+                        "Cz" : 1,
+                        "Cabsz" : 1,
+
+                        "kproll" : 0,
+                        "kdroll" : 0 ,
+                        "kppitch" : 0,
+                        "kdpitch" : 0,
+                        "kpyaw" : -0.4,
+                        "kdyaw" : -0.05,
+                        "kiyaw": 0,
+                        "kiyawrate" : -0.00,
+                        "yawRateIntegralRange"  : 2,
+
+                        "kpx" : 0,
+                        "kdx" : 0,
+                        "kpy" : 0,
+                        "kdy" : 0,
+                        "kpz" : 1,
+                        "kdz" : 0.3,
+                        "kiz" : 0.0,
+
+
+                        "integral_dt" : 0,
+                        "z_int_low" : 0,
+                        "z_int_high" : 200,
+
+                        "lx" : 0.15,
+                        "pitchSign" : 1,
+                        "pitchOffset" : 0,
+                        "rollSign" : 1,
+                        "rollOffset" : 0,
+                        "rollPitchSwitch" : 0,
+
+                        "servo1offset" : 0.6,
+                        "servo2offset" : -0.3
+                        },
+        "weights": { "eulerGamma" : 0,
+                    "rollRateGamma" : 0.7,
+                    "yawRateGamma" : 0.975,
+                    "pitchRateGamma" : 0.7,
+                    "zGamma" : 0.5,
+                    "vzGamma" : 0.5
+                    },
+        "initflags": {
+                    "_comment": "flags to be used in the init", 
+                    "_comment": "-bool verbose: allows some debug print statments",
+                    "_comment": "-bool sensors: enables or disables the sensorsuite package: if false all values will be 0, and sensorReady =false in the sensor ",
+                    "_comment":"-bool UDP: starts up the UDP connection such that other UDP functions will be enabled",
+                    "_comment":"-int motor_type: determines if you are using brushless or brushed motors: 0 = brushless, 1 = brushed;",
+                    "_comment":"-int mode: sets which controller to listen to: 0 = UDP, 1 = IBUS,2 = espnow, -1 = None;",
+                    "_comment":"-int control: sets which type of controller to use: 0 = bicopter, 1 = spinning(TODO),2 = s-blimp, -1 = None;",
+                    "verbose" : 0,
+                    "sensors" : 0,
+                    "escarm" : 1,
+                    "UDP" : 0,
+                    "Ibus" : 0,
+                    "ESPNOW" : 1,
+                    "PORT" : 1345,
+                    "motor_type" : 0,
+                    "mode" : 2,
+                    "control" : 0,
+                    "min_thrust": 1050,
+                    "max_thrust": 2000
+                    },
+        "hardware": {
+            "kf1": 1,
+            "kf2": 1,
+            "maxRadsYaw" : 0.07,
+            "fxyawScale" : 0.2,
+            "yawScaleEnable" : 0
+
+        }
+    }
+}
