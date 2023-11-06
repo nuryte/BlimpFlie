@@ -138,8 +138,8 @@ class SensorGUI:
         self.current_yaw = self.ax.arrow(
             0,
             0,
-            cur_x,
-            cur_y,
+            -cur_x,
+            -cur_y,
             head_width=0.1,
             head_length=0.1,
             fc="r",
@@ -149,8 +149,8 @@ class SensorGUI:
         self.desired_yaw = self.ax.arrow(
             0,
             0,
-            des_x,
-            des_y,
+            -des_x,
+            -des_y,
             head_width=0.1,
             head_length=0.1,
             fc="g",
