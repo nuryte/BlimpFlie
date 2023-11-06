@@ -1,3 +1,4 @@
+from ModSender.autonomy.DeterministicWalk import DeterministicWalk
 from autonomy.RandomWalk import RandomWalk
 from parameters import *
 from teleop.joystickHandler import JoystickHandler
@@ -37,7 +38,7 @@ for robConfig in robotConfigs:
 
 
 # Autonomous Behavior
-behavior_robots = [RandomWalk() for _ in robotConfigs]
+behavior_robots = [DeterministicWalk() for _ in robotConfigs]
 for robot_behavior in behavior_robots:
     robot_behavior.begin()
 
@@ -56,7 +57,7 @@ try:
                 des_fx, des_z, des_yaw = behavior_robots[i].execute(feedback)
                 outputs[1] = des_fx  # Forward
                 outputs[3] = des_z  # Z
-                joyhandler.tz = des_yaw  # Yaw control
+                outputs[6] = des_yaw  # Yaw control
 
 
             # Display sensors and output
