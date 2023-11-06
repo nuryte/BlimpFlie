@@ -34,6 +34,8 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
     kiyaw = raws->data[6];
     kiyawrate = raws->data[7];
     yawRateIntegralRange = raws->data[8];
+    errorYawrateRange = raws->data[9];
+    errorYawRange = raws->data[10];
   }
   else if (raws->flag == 13){
     PDterms->kpx = raws->data[0];

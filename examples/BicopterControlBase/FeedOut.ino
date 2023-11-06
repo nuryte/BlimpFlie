@@ -31,7 +31,7 @@ void addFeedback(controller_t *controls, sensors_t *sensors) {
       // Computing error between angles
       float e_yaw = controls->tz - sensors->yaw;
       e_yaw = atan2(sin(e_yaw), cos(e_yaw));
-      e_yaw = clamp(e_yaw, -PI/3, PI/3);
+      e_yaw = clamp(e_yaw, -errorYawRange, errorYawRange);
 
       
       yaw_integral += e_yaw *((float)dt)/1000000.0f* kiyaw;
@@ -42,15 +42,13 @@ void addFeedback(controller_t *controls, sensors_t *sensors) {
       float yaw_desired_rate = (e_yaw * PDterms->kpyaw+ yaw_integral);
       
       float e_yawrate = yaw_desired_rate - sensors->yawrate;
-      if (controls->fx != 0){
-        yawrate_integral += e_yawrate *((float)dt)/1000000.0f * kiyawrate;
-        yawrate_integral = clamp(yawrate_integral, -yawRateIntegralRange, yawRateIntegralRange);
-        controls->tz = e_yawrate*PDterms->kdyaw + yawrate_integral;
+      yawrate_integral += e_yawrate *((float)dt)/1000000.0f * kiyawrate;
+      yawrate_integral = clamp(yawrate_integral, -yawRateIntegralRange, yawRateIntegralRange);
 
-      } else{
-      // PD for yaw control
-        controls->tz = e_yawrate*PDterms->kdyaw;
-      }
+      // both legacy and cascading are active at the same time, just set terms to 0 if unused
+      controls->tz = e_yaw *PDterms->kpy + sensors->yawrate * PDterms->kdy; //legacy mode
+      controls->tz += e_yawrate*PDterms->kdyaw + yawrate_integral; //cascading control mode
+
     }
     
     //roll feedback
@@ -168,11 +166,10 @@ void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
   // inputs to the A-Matrix
   float l = PDterms->lx; //.3
 
-  float fx = clamp(controls->fx, -1, 1);                  // setpoint->bicopter.fx;
-  float fz = clamp(controls->fz, 0.001, 2);                 // setpoint->bicopter.fz;
-  
+  float fx = clamp(controls->fx, -1, 1);   
+  float fz = clamp(controls->fz, 0.001, 2); 
   float taux = clamp(controls->tx, -l + (float)0.01, l - (float)0.01);
-  float tauz = clamp(controls->tz, -1, 1); // limit should be .25 setpoint->bicopter.tauz; //- stateAttitudeRateYaw
+  float tauz = clamp(controls->tz, -errorYawrateRange, errorYawrateRange); 
 
   // inverse A-Matrix calculations
   float term1 = l * l * fx * fx + l * l * fz * fz + taux * taux + tauz * tauz;
