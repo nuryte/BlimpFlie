@@ -3,7 +3,7 @@ from math import atan2, sin, cos
 
 import numpy as np
 
-from ModSender.autonomy.Autonomous import Autonomous
+from autonomy.Autonomous import Autonomous
 
 
 

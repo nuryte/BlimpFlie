@@ -1,4 +1,4 @@
-from ModSender.autonomy.ZigZagWalk import DeterministicWalk
+from autonomy.ZigZagWalk import DeterministicWalk
 from autonomy.RandomWalk import RandomWalk
 from parameters import *
 from teleop.joystickHandler import JoystickHandler

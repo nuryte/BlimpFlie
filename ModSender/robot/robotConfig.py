@@ -1,7 +1,7 @@
 import time
 import json
 
-from ModSender.parameters import BRODCAST_CHANNEL, MASTER_MAC, ROBOT_JASON
+from parameters import BRODCAST_CHANNEL, MASTER_MAC, ROBOT_JASON
 
 
 class RobotConfig:
@@ -9,7 +9,7 @@ class RobotConfig:
         self.mac = mac_address
         self.slave_index = slave_index
 
-        config_file = "ModSender/config/" + mac_address.replace(":", "")[-4:] + ".json"
+        self.config_file = "ModSender/config/" + mac_address.replace(":", "")[-4:] + ".json"
 
         self.esp_now = esp_now
 
