@@ -265,7 +265,7 @@ void loop() {
 
 
 
-  int sonar_sensor_enabled = 1;  //FIXME make this a flag
+  int sonar_sensor_enabled = 1;  // FIXME make this a flag
 
   if(sonar_sensor_enabled){
     sensorData.values[0] = sonar_sensor.readDistance();  // Read distance from sensor
@@ -361,10 +361,10 @@ void loop() {
       espSendData1.flag = 1;
       espSendData1.values[0] = sensors.estimatedZ - sensors.groundZ;
       espSendData1.values[1] = sensors.yaw;
-      espSendData1.values[2] = outputs.m1;
-      espSendData1.values[3] = outputs.m2;
-      espSendData1.values[4] = outputs.s1;
-      espSendData1.values[5] = outputs.s2;
+      espSendData1.values[2] = sensorData.values[0];
+      espSendData1.values[3] = battery_level;
+      espSendData1.values[4] = outputs.m1;
+      espSendData1.values[5] = outputs.s1;
       blimp.send_esp_feedback(transceiverAddress, &espSendData1);
       espSendData2.flag = 2;
       espSendData2.values[0] = (float)blimp.IBus.readChannel(5);

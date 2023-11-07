@@ -1,12 +1,18 @@
 #include "modBlimp.h"
 
+// Sensors
 #include "BNO85.h"
 #include "baro390.h"
 #include "GY_US42V2.h"  // Include the header file
 
+
+// Strategy
+#include "RandomWalk.h"
+
 // #include "BNO55.h"
 // #include "baro280.h"
 
+// Sensors instances
 ModBlimp blimp;
 BNO85 bno;
 baro390 baro;
@@ -16,6 +22,11 @@ GY_US42V2 sonar_sensor;  // Create an instance of the GY_US42V2 class
 IBusBM IBus;
 
 
+// Strategy instances
+RandomWalk randomWalk;
+
+
+// Robot specifications
 robot_specs_s robot_specs = {
         .min_thrust = 1000,
         .max_thrust = 2000,
@@ -196,7 +207,27 @@ void setup() {
     sensors.groundZ = baro.getEstimatedZ();
 
 
+
+    // Random walk definitions
+
+    randomWalk.setForwardForce(0.3);
+    randomWalk.setMinDistance(400);
+    randomWalk.setDesZ(5);
+
+    randomWalk.begin();
+
+
+
 }
+
+// random walk variables
+float randomW_force;
+int randomW_z;
+float randomW_yaw;
+
+
+
+
 float absoluteyawave = 0;
 bool snapon = 0;
 // float resyncPitch = 0.09;
@@ -207,7 +238,13 @@ unsigned long timed = micros();
 int lastflag = 0;
 
 int counter2 = 0;
+
+
+
 void loop() {
+
+  int sonar_sensor_enabled = 1;  //FIXME make this a flag
+  int randomWalk_enabled = 0; //FIXME make this a flag
 
 
 
@@ -235,11 +272,9 @@ void loop() {
   blimp.getSensorRaws(&sensorData); //reading from Ultrasound wireless
 
 
-  int sonar_sensor_enabled = 1;  //FIXME make this a flag
 
-  if(sonar_sensor_enabled){
-    sensorData.values[0] = sonar_sensor.readDistance();  // Read distance from sensor
-  }
+
+
 
 
     if ((int)(flag/10) == 0){// flag == 0, 1, 2 uses control of what used to be the correct way
@@ -283,6 +318,7 @@ void loop() {
             controls.ty = raws.data[4];
             controls.tz = raws.data[5];
             controls.absz = raws.data[6];
+            randomWalk_enabled = raws.data[8];
             ss = raws.data[7]; // for the spinning blimp switch states
         } else { //nicla control
             IBus.loop();
@@ -296,7 +332,10 @@ void loop() {
             controls.absz = (float)IBus.readChannel(6)/1000.0f;
         }
 
+
+        Sonar_sensor(&controls, sonar_sensor_enabled, randomWalk_enabled);
         addFeedback(&controls, &sensors); //this function is implemented here for you to customize
+
 
         // Init flags to select which getOutput function is selected
         if (init_flags.servo == 0){

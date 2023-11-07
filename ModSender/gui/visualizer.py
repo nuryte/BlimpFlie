@@ -168,8 +168,8 @@ class SensorGUI:
         self.current_yaw = self.ax.arrow(
             0,
             0,
-            cur_x,
-            cur_y,
+            -cur_x,
+            -cur_y,
             head_width=0.1,
             head_length=0.1,
             fc="r",
@@ -179,8 +179,8 @@ class SensorGUI:
         self.desired_yaw = self.ax.arrow(
             0,
             0,
-            des_x,
-            des_y,
+            -des_x,
+            -des_y,
             head_width=0.1,
             head_length=0.1,
             fc="g",
@@ -224,7 +224,7 @@ class SensorGUI:
         plt.draw()
 
     def on_button_click(self, event):
-        self.robConfig.InicializationSystem()
+        self.robConfig.initialize_system()
         print("Restart")
 
     def on_toggle_click(self, label):
@@ -253,8 +253,8 @@ if __name__ == "__main__":
 
     # Test plotting with increasing numbers
     for i in range(100):
-        mygui1.update_interface(i*2*pi/100, pi*random()/6, i*0.2, 0, 0)
-        mygui2.update_interface(i * 2 * pi / 100, pi * random() / 6, i * 0.2, 0, 0)
+        mygui1.update_interface(i*2*pi/100, pi*random()/6, i*0.2, 0, i)
+        mygui2.update_interface(i * 2 * pi / 100, pi * random() / 6, i * 0.2, 0, i)
         mygui1.sleep()
 
     plt.ioff()

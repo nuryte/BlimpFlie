@@ -11,8 +11,8 @@
 
 #define SERVO1 D9
 #define SERVO2 D10
-#define THRUST1 D0
-#define THRUST2 D1
+#define THRUST1 D1
+#define THRUST2 D0
 #define BATT A2
 
 

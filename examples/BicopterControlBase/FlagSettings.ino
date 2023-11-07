@@ -93,7 +93,7 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
     if (transceiverEnabled == false){
       //uint8_t transceiverAddress[6];
       transceiverEnabled = true;
-       espSendData1.flag = (int) raws->data[6   ];
+       espSendData1.flag = (int) raws->data[6];
       for (int i = 0; i < 6; i++) {
         // print((uint8_t)raws->data[i]);
         // print(":");
