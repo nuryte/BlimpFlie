@@ -56,5 +56,6 @@ float baro390::getEstimatedZ(){
 
 }
 float baro390::getVelocityZ(){
-    return (estimatedZ - oldZ)/((float)dtBaro / 1000000.0f);
+    // Micro seconds to seconds
+    return 1000000 * (estimatedZ - oldZ) / dtBaro;
 }

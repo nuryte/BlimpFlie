@@ -11,8 +11,8 @@
 
 #define SERVO1 D9
 #define SERVO2 D10
-#define THRUST1 D0
-#define THRUST2 D1
+#define THRUST1 D1
+#define THRUST2 D0
 #define BATT A2
 
 
@@ -74,7 +74,7 @@ class ModBlimp {
         void addFeedback(controller_t *controls, sensors_t *sensors); //uses the sensor data to add feedback directly into controller_t
         void getOutputs(controller_t *controls, actuation_t* outputs); //converts control
         void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t* outputs); //converts control
-        float executeOutputs(actuation_t *out);
+        float executeOutputs(actuation_t *out, robot_specs_s *robot_specs);
         float clamp(float in, float min, float max);
         void send_udp_feedback(String dat1, String dat2, String dat3, String dat4);
         void calibrationMode(int flag);

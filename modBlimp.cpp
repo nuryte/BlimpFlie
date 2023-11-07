@@ -151,8 +151,12 @@ void ModBlimp::init(init_flags_t *init_flagsIn, init_sensors_t *init_sensorsIn, 
   if (init_flags->control == 0) {
   servo1.setPeriodHertz(50); // Standard 50hz servo
   servo2.setPeriodHertz(50); // Standard 50hz servo
-  servo1.attach(SERVO1, 450, 2550);
-  servo2.attach(SERVO2, 450, 2550);
+
+  int servo_min = 450;
+  int servo_max = 2550;  //FIXME set it somewhere else
+
+  servo1.attach(SERVO1, servo_min, servo_max);
+  servo2.attach(SERVO2, servo_min, servo_max);
   pinMode(THRUST1, OUTPUT);
   pinMode(THRUST2, OUTPUT);
   if (init_flags->motor_type == 0)
@@ -217,55 +221,6 @@ void ModBlimp::magnetometerCalibration(float (&offset)[3], float (&matrix)[3][3]
   sensorSuite.enterTransform();
 }
 
-// loop functions
-void ModBlimp::defaultControl()
-{ // contains an example of the entire control stack
-
-  /*
-  //    attempts to get the lastest information about the SENSORS and places them into the
-  //    sensor_t data structure
-  //    contains: roll, pitch, yaw, rollrate, pitchrate, yawrate, estimatedZ, velocityZ, groundZ
-  //    will return 0 for all sensors if sensors == false
-  */
-  getLatestSensorData(&sensorsEx);
-
-  sensorsEx.pitch = -1 * sensorsEx.pitch; // hack to invert pitch due to orientation of the sensor
-
-  /*
-  //    attempts to get the lastest information about the CONTROLLER and places them into the
-  //    controller_t data structure
-  //    contrains: fx, fy, fz, absz, tx, ty, tz, ready
-  */
-  getControllerData(&controlsEx);
-
-  /* TODO- NOT IMPLEMENTED
-  //    optionally you can get the lastest information about the controller as raw values labeled as I1, I2, I3...
-  */
-  // rawInputs = blimp.getRawInputs();
-
-  /*
-  //    adds feedback directly into the controller terms using sensor feedback
-  //    replace this with your own custom function for more customization
-  //        example is placed below
-  */
-  addFeedback(&controlsEx, &sensorsEx);
-
-  /*
-  //    uses the mode to determine the control scheme for the motor/servo outputs
-  //    currently only implementation is for the bicopter blimp
-  //    replace this with your own custom function for more customization
-  //    actuation_t data type contains: m1, m2, s1, s2 for each motor and servo
-  //        example is placed below
-  */
-  getOutputs(&controlsEx, &outputsEx);
-
-  /*
-  //    uses the mode to determine the ouput scheme for the motor/servo outputs
-  //    currently only implementation is for the bicopter blimp
-  //    outputs should be floats between 0 and 1
-  */
-  executeOutputs(&outputsEx);
-}
 void ModBlimp::getLatestSensorData(sensors_t *sensors)
 {
   // interface with Sensorsuite
@@ -595,7 +550,7 @@ void ModBlimp::getOutputs(controller_t *controls, sensors_t *sensors, actuation_
   return;
 }
 
-float ModBlimp::executeOutputs(actuation_t *outputs)
+float ModBlimp::executeOutputs(actuation_t *outputs, robot_specs_s *robot_specs)
 {
   Vbatt = Vbatt * 0.95 + analogReadMilliVolts(BATT) * .05;
   //Serial.println(analogReadMilliVolts(BATT));
@@ -614,14 +569,14 @@ float ModBlimp::executeOutputs(actuation_t *outputs)
     {
       if (outputs->ready)
       {
-        thrust1.writeMicroseconds((int)((outputs->m1) * 900 + 1100));
-        thrust2.writeMicroseconds((int)((outputs->m2) * 900 + 1100));
+        thrust1.writeMicroseconds((int)((outputs->m1) * (robot_specs->max_thrust - robot_specs->min_thrust) + robot_specs->min_thrust));
+        thrust2.writeMicroseconds((int)((outputs->m2) * (robot_specs->max_thrust - robot_specs->min_thrust) + robot_specs->min_thrust));
       }
       else
       {
 
-        thrust1.writeMicroseconds((int)0);
-        thrust2.writeMicroseconds((int)0);
+        thrust1.writeMicroseconds((int) 0);
+        thrust2.writeMicroseconds((int) 0);
       }
     }
     else if (init_flags->motor_type == 1)
@@ -732,7 +687,7 @@ void ModBlimp::getSensorRaws(ReceivedData *sensorData)
 // Enter arming sequence for ESC
 void ModBlimp::calibrate_esc(Servo &thrust1, Servo &thrust2)
 {
-    delay(1000);
+   delay(1000);
   Serial.println("Calibrating ESCs....");
   // ESC arming sequence for BLHeli S
   thrust1.writeMicroseconds(2000);
@@ -749,5 +704,5 @@ void ModBlimp::calibrate_esc(Servo &thrust1, Servo &thrust2)
 
 
 
-  Serial.println("Calibration completed1");
+  Serial.println("Calibration completed");
 }
