@@ -166,10 +166,13 @@ void getOutputs(controller_t *controls, sensors_t *sensors, actuation_t *out)
   // inputs to the A-Matrix
   float l = PDterms->lx; //.3
 
-  float fx = clamp(controls->fx, -1, 1);   
+  float fx = controls->fx;   
   float fz = clamp(controls->fz, 0.001, 2); 
   float taux = clamp(controls->tx, -l + (float)0.01, l - (float)0.01);
   float tauz = clamp(controls->tz, -errorYawrateRange, errorYawrateRange); 
+  if (fx != 0) {
+    fx = clamp(controls->fx + controls->fx/abs(controls->fx) * abs(tauz) * fxyawScale/l, -1.5, 1.5); 
+  }
 
   // inverse A-Matrix calculations
   float term1 = l * l * fx * fx + l * l * fz * fz + taux * taux + tauz * tauz;

@@ -70,8 +70,8 @@ void setPDflags(init_flags_t *init_flags,feedback_t *PDterms, sensor_weights_t *
     rollPitchAdjust->rollPitchSwitch = raws->data[6] == 1.0f;
     kf1 = raws->data[7];
     kf2 = raws->data[8];
-    // maxRadsYaw = raws->data[9]; //.1f                                 //.175;
-    // fxyawScale = raws->data[10];
+    maxRadsYaw = raws->data[9]; //.1f                                 //.175;
+    fxyawScale = raws->data[10];
     
   }
 

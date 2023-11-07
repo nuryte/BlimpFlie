@@ -159,7 +159,8 @@ float z_integral = 0;
 
 float yawrate_integral = 0;
 float yaw_integral = 0;
-
+float maxRadsYaw = 0; //.1f                                 //.175;
+float fxyawScale = 0;
 //z feedback terms
 float kiz = 0;
 float z_int_low = 0;
@@ -335,23 +336,23 @@ void loop() {
   timed = micros();
   counter2 += 1;
   if (counter2 >= 25){
-    Serial.print(dt);
-    Serial.print(',');
-    Serial.print((bool)controls.ready);
-    Serial.print(',');
-    Serial.print(sensors.estimatedZ - sensors.groundZ);
-    Serial.print(',');
-    Serial.print(sensors.yaw);
-    Serial.print(',');
-    Serial.print(battery_level);
-    Serial.print(',');
-    Serial.print(espSendData2.values[0]);
-    Serial.print(',');
-    Serial.print(espSendData2.values[1]);
-    Serial.print(',');
-    Serial.print(espSendData2.values[2]);
-    Serial.print(',');
-    Serial.println(espSendData2.values[3]);
+    // Serial.print(dt);
+    // Serial.print(',');
+    // Serial.print((bool)controls.ready);
+    // Serial.print(',');
+    // Serial.print(sensors.estimatedZ - sensors.groundZ);
+    // Serial.print(',');
+    // Serial.print(sensors.yaw);
+    // Serial.print(',');
+    // Serial.print(battery_level);
+    // Serial.print(',');
+    // Serial.print(espSendData2.values[0]);
+    // Serial.print(',');
+    // Serial.print(espSendData2.values[1]);
+    // Serial.print(',');
+    // Serial.print(espSendData2.values[2]);
+    // Serial.print(',');
+    // Serial.println(espSendData2.values[3]);
     counter2 = 0;
     if (transceiverEnabled){
       
